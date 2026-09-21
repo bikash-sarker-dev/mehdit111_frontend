@@ -1,33 +1,7 @@
-import { PaymentsOverview } from "@/components/Charts/payments-overview";
-import { UsedDevices } from "@/components/Charts/used-devices";
-import { WeeksProfit } from "@/components/Charts/weeks-profit";
-import { TopChannels } from "@/components/Tables/top-channels";
-import { TopChannelsSkeleton } from "@/components/Tables/top-channels/skeleton";
-import { createTimeFrameExtractor } from "@/utils/timeframe-extractor";
-import { Suspense } from "react";
+import React from "react";
 
-import { OverviewCardsSkeleton } from "./_components/overview-cards/skeleton";
-import { RegionLabels } from "./_components/region-labels";
-import RecentActivity from "./_components/recentActivity/RecentActivity";
-import DashboardOverview from "./_components/overview-cards/OverView";
-import RevenueGrowthChart from "./_components/chats/Chats";
-import HomeCom from "@/components/home/Home";
-
-type PropsType = {
-  searchParams: Promise<{
-    selected_time_frame?: string;
-  }>;
+const page = () => {
+  return <div>page</div>;
 };
 
-export default async function Home({ searchParams }: PropsType) {
-  const { selected_time_frame } = await searchParams;
-  const extractTimeFrame = createTimeFrameExtractor(selected_time_frame);
-
-  return (
-    <>
-      <div>
-        <HomeCom />
-      </div>
-    </>
-  );
-}
+export default page;
