@@ -12,7 +12,7 @@ interface ForgotPasswordFormProps {
 
 export default function ForgotPasswordForm({
   onSubmit,
-  loginHref = "/login",
+  loginHref = "/signIn",
 }: ForgotPasswordFormProps) {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
@@ -31,8 +31,8 @@ export default function ForgotPasswordForm({
           Forgot Password?
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-slate-500">
-          Enter the email address associated with your account. We&apos;ll
-          send you a link to reset your password.
+          Enter the email address associated with your account. We&apos;ll send
+          you a link to reset your password.
         </p>
       </div>
 

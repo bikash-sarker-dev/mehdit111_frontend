@@ -17,10 +17,10 @@ import ReduxProvider from "@/redux/Provider";
 
 export const metadata: Metadata = {
   title: {
-    template: "shizzle",
-    default: "shizzle",
+    template: "GrowMoreReviews",
+    default: "GrowMoreReviews",
   },
-  description: "this is shizzle project for demo description",
+  description: "this is GrowMoreReviews project for demo description",
 };
 
 export default function RootLayout({ children }: PropsWithChildren) {

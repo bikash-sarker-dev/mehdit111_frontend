@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import AuthLayout from "./AuthLayout";
-import Logo from "./Logo";
+
 import PasswordInput from "./PasswordInput";
+import Logo from "./Logo";
+import AuthLayout from "./AuthLayout";
 
 interface ResetPasswordFormProps {
   onSubmit?: (data: { password: string }) => void;
@@ -12,7 +13,7 @@ interface ResetPasswordFormProps {
 
 export default function ResetPasswordForm({
   onSubmit,
-  loginHref = "/login",
+  loginHref = "/signIn",
 }: ResetPasswordFormProps) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -57,9 +58,7 @@ export default function ResetPasswordForm({
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
 
-        {error && (
-          <p className="text-sm font-medium text-red-600">{error}</p>
-        )}
+        {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
         <button
           type="submit"

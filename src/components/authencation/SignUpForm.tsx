@@ -22,7 +22,7 @@ interface SignUpFormProps {
 export default function SignUpForm({
   onSubmit,
   onGoogleSignUp,
-  loginHref = "/logIn",
+  loginHref = "/signIn",
 }: SignUpFormProps) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
