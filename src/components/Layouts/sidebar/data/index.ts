@@ -26,7 +26,7 @@ export const NAV_DATA: NavSection[] = [
       },
       {
         title: "Competitor Intelligence",
-        url: "/subscriptions",
+        url: "/dashboard/competitor-intelligence",
         icon: Icons.Cog,
         items: [],
       },
