@@ -1,10 +1,9 @@
-import React from "react";
-import ComingSoonPage from "../comingsoon/page";
+import PlanAndBilling from "@/components/dashboardComponents/planBulling/PlanBulling";
 
 const page = () => {
   return (
     <div>
-      <ComingSoonPage />
+      <PlanAndBilling />
     </div>
   );
 };
