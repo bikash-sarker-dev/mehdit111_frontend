@@ -1,5 +1,3 @@
-import { Star } from "lucide-react";
-
 interface FooterColumn {
   title: string;
   links: string[];
@@ -34,16 +32,15 @@ export default function Footer() {
   return (
     <footer className="bg-slate-900">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5 lg:gap-8">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-6 lg:gap-8">
+          {/* Logo + tagline */}
           <div className="lg:col-span-2">
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-green-400 to-blue-500">
-                <Star className="h-4 w-4 fill-white text-white" />
-              </div>
-              <span className="text-sm font-bold text-white">
-                Growth Reviews
-              </span>
-            </div>
+            {/* Replace the src below with your own logo image */}
+            <img
+              src="/images/logo/logo.png"
+              alt="Review Growth AI"
+              className="h-14 w-auto object-contain"
+            />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-400">
               Review Growth + Reputation Management + Competitor Intelligence
               for local businesses.
