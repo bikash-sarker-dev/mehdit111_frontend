@@ -54,7 +54,7 @@ export default function FAQSection() {
   };
 
   return (
-    <section className="bg-white py-16 sm:py-20 lg:py-24">
+    <section id="faq" className="bg-white py-16 sm:py-20 lg:py-24">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <span className="text-sm font-semibold text-blue-600">FAQ</span>
