@@ -169,7 +169,7 @@ export default function ReviewDashboard({
   const periods: Period[] = ["7 Days", "30 Days", "90 Days", "12 Months"];
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 text-slate-900">
+    <div className="min-h-screen w-full text-slate-900">
       <div className="">
         {/* Header */}
         <header className="mb-6 sm:mb-8">
