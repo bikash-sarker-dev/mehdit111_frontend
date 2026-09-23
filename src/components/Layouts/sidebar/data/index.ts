@@ -33,7 +33,7 @@ export const NAV_DATA: NavSection[] = [
       {
         title: "Review Gap",
         icon: Icons.UserStar,
-        url: "/notifications",
+        url: "/dashboard/review-gap-management",
         items: [],
       },
     ],

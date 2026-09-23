@@ -65,7 +65,7 @@ export function Sidebar() {
           isOpen ? "w-full" : "w-0",
         )}
       >
-        <div className="flex h-full flex-col pl-[25px] pr-[7px] pt-6">
+        <div className="flex h-full flex-col py-6 pl-[25px] pr-[7px]">
           {/* Logo */}
           <div className="relative pl-10 pr-4.5">
             <Link
