@@ -8,19 +8,19 @@ export const NAV_DATA: NavSection[] = [
       {
         title: "Overview",
         icon: Icons.LayoutDashboard,
-        url: "/",
+        url: "/dashboard",
         items: [],
       },
 
       {
         title: "Customers",
-        url: "/NFC",
+        url: "/dashboard/customers-management",
         icon: Icons.UserRound,
         items: [],
       },
       {
         title: "NFC",
-        url: "/subscriptions",
+        url: "/dashboard/nfc-management",
         icon: Icons.Nfc,
         items: [],
       },
