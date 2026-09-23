@@ -18,7 +18,7 @@ interface LogoProps {
   priority?: boolean;
 }
 
-function Logo({ width = 170, className = "", priority = true }: LogoProps) {
+function Logo({ width = 120, className = "", priority = true }: LogoProps) {
   return (
     <Link href="#home" className="flex shrink-0 items-center gap-2">
       <Image
@@ -28,7 +28,7 @@ function Logo({ width = 170, className = "", priority = true }: LogoProps) {
         height={200}
         priority={priority}
         style={{ width, height: "auto" }}
-        className={className}
+        className={`${className}`}
       />
     </Link>
   );
@@ -78,13 +78,13 @@ export default function HeroSection() {
 
         <div className="hidden items-center gap-5 lg:flex">
           <Link
-            href="#login"
+            href="/signIn"
             className="text-sm font-medium text-slate-700 transition-colors hover:text-blue-600"
           >
             Log In
           </Link>
           <Link
-            href="#get-started"
+            href="/signup"
             className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
           >
             Get Started
@@ -160,7 +160,7 @@ export default function HeroSection() {
       )}
 
       {/* Hero content — text on top, dashboard mockup stacked below it */}
-      <div className="relative z-10 mx-auto max-w-7xl px-6 pt-2 sm:pt-6 lg:px-10 lg:pt-10">
+      <div className="relative z-10 mx-auto max-w-7xl px-6 pt-2 sm:pt-6 lg:px-10 lg:pt-14">
         {/* Copy */}
         <div className="max-w-xl">
           <h1 className="text-[2.6rem] font-extrabold tracking-tight text-slate-900 sm:text-5xl lg:text-[3.5rem] lg:leading-[4.1rem]">
@@ -201,7 +201,7 @@ export default function HeroSection() {
 
       {/* Dashboard mockup — large, stacked underneath the copy, bleeding toward
           the right edge and fading into white at the bottom of the section */}
-      <div className="relative z-0 mt-6 sm:-mt-2 lg:-mt-6">
+      <div className="relative z-0 mt-6 sm:-mt-2 lg:-mt-14">
         <div className="mx-auto max-w-[1500px] px-4 sm:px-8 lg:px-10">
           <div className="relative ml-auto w-full sm:w-[94%] lg:w-[86%] xl:w-[80%]">
             {/* Aspect box keeps the mockup responsive at its native ratio */}
