@@ -47,19 +47,19 @@ export const NAV_DATA_DOWN: NavSection[] = [
       {
         title: "Settings",
         icon: Icons.Settings,
-        url: "/settings",
+        url: "/dashboard/settings",
         items: [],
       },
       {
         title: "Plan & Billing",
         icon: Icons.CreditCard,
-        url: "/settings",
+        url: "/dashboard/plan-management",
         items: [],
       },
       {
         title: "Help",
         icon: Icons.MessageCircleQuestionMark,
-        url: "/settings",
+        url: "/dashboard/help-manage",
         items: [],
       },
     ],
