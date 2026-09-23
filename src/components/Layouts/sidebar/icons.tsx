@@ -1,4 +1,18 @@
 import { SVGProps } from "react";
+import {
+  Settings,
+  LayoutDashboard,
+  SquareLibrary,
+  UserRound,
+  HandCoins,
+  BookMarked,
+  ShoppingCart,
+  Nfc,
+  Cog,
+  UserStar,
+  MessageCircleQuestionMark,
+  CreditCard,
+} from "lucide-react";
 
 export type PropsType = SVGProps<SVGSVGElement>;
 
@@ -186,3 +200,17 @@ export function ArrowLeftIcon(props: PropsType) {
     </svg>
   );
 }
+export {
+  Settings,
+  LayoutDashboard,
+  SquareLibrary,
+  UserRound,
+  HandCoins,
+  BookMarked,
+  ShoppingCart,
+  Nfc,
+  Cog,
+  UserStar,
+  MessageCircleQuestionMark,
+  CreditCard,
+};

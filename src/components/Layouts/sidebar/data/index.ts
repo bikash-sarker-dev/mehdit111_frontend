@@ -3,42 +3,65 @@ import type { NavSection } from "./types";
 
 export const NAV_DATA: NavSection[] = [
   {
-    label: "MAIN MENU",
+    label: "",
     items: [
       {
-        title: "Dashboard",
-        icon: Icons.HomeIcon,
+        title: "Overview",
+        icon: Icons.LayoutDashboard,
         url: "/",
         items: [],
       },
+
       {
-        title: "User Management",
-        url: "/user-management",
-        icon: Icons.Calendar,
+        title: "Customers",
+        url: "/NFC",
+        icon: Icons.UserRound,
         items: [],
       },
       {
-        title: "Subscriptions",
+        title: "NFC",
         url: "/subscriptions",
-        icon: Icons.User,
+        icon: Icons.Nfc,
         items: [],
       },
       {
-        title: "Notifications",
-        icon: Icons.Alphabet,
+        title: "Competitor Intelligence",
+        url: "/subscriptions",
+        icon: Icons.Cog,
+        items: [],
+      },
+      {
+        title: "Review Gap",
+        icon: Icons.UserStar,
         url: "/notifications",
-        items: [],
-      },
-      {
-        title: "Settings",
-        icon: Icons.Alphabet,
-        url: "/settings",
         items: [],
       },
     ],
   },
+];
+
+export const NAV_DATA_DOWN: NavSection[] = [
   {
-    label: "OTHERS",
-    items: [],
+    label: "",
+    items: [
+      {
+        title: "Settings",
+        icon: Icons.Settings,
+        url: "/settings",
+        items: [],
+      },
+      {
+        title: "Plan & Billing",
+        icon: Icons.CreditCard,
+        url: "/settings",
+        items: [],
+      },
+      {
+        title: "Help",
+        icon: Icons.MessageCircleQuestionMark,
+        url: "/settings",
+        items: [],
+      },
+    ],
   },
 ];
