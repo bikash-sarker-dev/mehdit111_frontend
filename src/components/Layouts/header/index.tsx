@@ -49,8 +49,7 @@ export function Header() {
       <div className="flex flex-1 items-center justify-end gap-2 min-[375px]:gap-4">
         <Notification />
 
-        <div className="shrink-0">
-          {/* <UserInfo /> */}
+        <div className="hidden shrink-0 sm:block">
           <figure className="flex items-center gap-2.5 px-5 py-3.5">
             <Image
               src={USER.img}
@@ -61,12 +60,12 @@ export function Header() {
               height={200}
             />
 
-            <figcaption className="space-y-1 text-base font-medium">
+            <figcaption className="space-y-1 text-sm font-medium sm:text-base">
               <div className="mb-2 leading-none text-dark dark:text-white">
                 {USER.name}
               </div>
 
-              <div className="text-xs leading-none text-gray-6">
+              <div className="leading-none text-gray-6 sm:text-xs">
                 {USER.email}
               </div>
             </figcaption>
