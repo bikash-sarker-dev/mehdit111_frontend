@@ -55,7 +55,7 @@ export default function QuickSend() {
               <PhoneMockup buttonLabel="Work has been started" />
             </div>
             <div className="sm:absolute sm:bottom-0 sm:right-0 lg:right-4">
-              <PhoneMockup />
+              {/* <PhoneMockup /> */}
             </div>
           </div>
         </div>

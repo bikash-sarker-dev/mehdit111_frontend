@@ -1,5 +1,6 @@
 import { Wifi, Signal, BatteryFull, Star } from "lucide-react";
-
+import Link from "next/link";
+import Image from "next/image";
 interface PhoneMockupProps {
   customerName?: string;
   mobileNumber?: string;
@@ -8,6 +9,21 @@ interface PhoneMockupProps {
   className?: string;
 }
 
+function Logo({ width = 100, className = "", priority = true }) {
+  return (
+    <Link href="#home" className="flex shrink-0 items-center gap-2">
+      <Image
+        src="/images/logo/logo.png"
+        alt="Grow More Reviews — Grow More Reviews, Outgrow Your Competition"
+        width={459}
+        height={200}
+        priority={true}
+        style={{ width: 90, height: "auto" }}
+        className={`${className}`}
+      />
+    </Link>
+  );
+}
 export default function PhoneMockup({
   customerName = "Sarah Johnson",
   mobileNumber = "+44 7700 000000",
@@ -35,15 +51,7 @@ export default function PhoneMockup({
 
         {/* Brand */}
         <div className="mt-3 flex items-center gap-2 px-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-green-400 to-blue-500">
-            <Star className="h-4 w-4 fill-white text-white" />
-          </div>
-          <div className="leading-tight">
-            <p className="text-[11px] font-bold text-slate-900">
-              Growth Reviews
-            </p>
-            <p className="text-[8px] text-slate-400">Review Growth AI</p>
-          </div>
+          <Logo />
         </div>
 
         {/* Form */}
