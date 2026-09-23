@@ -6,6 +6,7 @@ import AuthLayout from "./AuthLayout";
 import Logo from "./Logo";
 import PasswordInput from "./PasswordInput";
 import GoogleButton from "./GoogleButton";
+import { useRouter } from "next/navigation";
 
 interface SignInFormProps {
   onSubmit?: (data: { email: string; password: string }) => void;
@@ -22,10 +23,12 @@ export default function SignInForm({
 }: SignInFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     onSubmit?.({ email, password });
+    router.push("/onboarding");
   };
 
   return (
