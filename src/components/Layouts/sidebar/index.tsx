@@ -22,7 +22,7 @@ export function Sidebar() {
   /** ⭐ Correct nested URL detection */
   const isActiveUrl = (url?: string): boolean => {
     if (!url) return false;
-    return pathname === url || pathname.startsWith(url + "/");
+    return pathname === url || pathname.startsWith(url + "/deshboard");
   };
 
   const toggleExpanded = (title: string) => {
@@ -46,7 +46,7 @@ export function Sidebar() {
 
   const handleLogout = () => {
     if (isMobile) toggleSidebar();
-    router.push("/auth/login");
+    router.push("/signIn");
   };
 
   return (
