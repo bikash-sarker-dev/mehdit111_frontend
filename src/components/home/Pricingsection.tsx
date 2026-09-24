@@ -1,3 +1,5 @@
+"use client";
+
 import { Check } from "lucide-react";
 
 interface Plan {
@@ -6,9 +8,19 @@ interface Plan {
   altPrices: string;
   description: string;
   features: string[];
-  ctaLabel: string;
+  /** Instant purchase / signup button, shown on every plan. */
+  startLabel: string;
+  /** Optional trial button, shown under the primary button. */
+  trialLabel?: string;
   featured?: boolean;
   badge?: string;
+}
+
+export interface PricingSectionProps {
+  /** Called when someone clicks the instant "Start now" button on a plan. */
+  onStartNow?: (planName: string) => void;
+  /** Called when someone clicks the free-trial button on a plan. */
+  onStartTrial?: (planName: string) => void;
 }
 
 const plans: Plan[] = [
@@ -24,7 +36,7 @@ const plans: Plan[] = [
       "100 review requests/month",
       "3 competitors tracked",
     ],
-    ctaLabel: "Get Started",
+    startLabel: "Start now",
   },
   {
     name: "Growth",
@@ -42,7 +54,8 @@ const plans: Plan[] = [
       "CSV upload",
       "300 review requests/month",
     ],
-    ctaLabel: "14-day free trial",
+    startLabel: "Start now",
+    trialLabel: "14-day free trial",
     featured: true,
     badge: "Most Popular",
   },
@@ -59,11 +72,14 @@ const plans: Plan[] = [
       "Priority support",
       "Future CRM integration readiness",
     ],
-    ctaLabel: "Get Started",
+    startLabel: "Start now",
   },
 ];
 
-export default function PricingSection() {
+export default function PricingSection({
+  onStartNow,
+  onStartTrial,
+}: PricingSectionProps) {
   return (
     <section id="pricing" className="bg-slate-50 py-16 sm:py-20 lg:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -156,16 +172,29 @@ export default function PricingSection() {
                 ))}
               </ul>
 
+              {/* Instant purchase / signup */}
               <button
                 type="button"
+                onClick={() => onStartNow?.(plan.name)}
                 className={`mt-8 w-full rounded-lg py-3 text-sm font-semibold transition-colors ${
                   plan.featured
                     ? "bg-white text-blue-600 hover:bg-blue-50"
                     : "bg-blue-600 text-white hover:bg-blue-700"
                 }`}
               >
-                {plan.ctaLabel}
+                {plan.startLabel}
               </button>
+
+              {/* Standard trial option, kept alongside the instant option */}
+              {plan.trialLabel && (
+                <button
+                  type="button"
+                  onClick={() => onStartTrial?.(plan.name)}
+                  className="mt-3 w-full rounded-lg border border-white/40 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+                >
+                  {plan.trialLabel}
+                </button>
+              )}
             </div>
           ))}
         </div>
