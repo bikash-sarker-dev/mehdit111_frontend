@@ -89,7 +89,7 @@ export const NAV_DATA_ADMIN: NavSection[] = [
         items: [
           {
             title: "Revenue & Billing",
-            url: "/dashboard/nfc-management",
+            url: "/dashboard/admin/revenue-bulling",
             icon: Icons.CircleDollarSign,
           },
           {
