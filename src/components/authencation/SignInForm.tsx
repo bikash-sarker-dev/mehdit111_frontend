@@ -25,10 +25,28 @@ export default function SignInForm({
   const [password, setPassword] = useState("");
   const router = useRouter();
 
+  const ADMIN_EMAIL = "admin@gmail.com";
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    onSubmit?.({ email, password });
-    router.push("/onboarding");
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Save the email to localStorage
+    try {
+      localStorage.setItem("userEmail", normalizedEmail);
+    } catch (error) {
+      console.error("Could not save email to localStorage:", error);
+    }
+
+    onSubmit?.({ email: normalizedEmail, password });
+
+    // Admin goes to the admin dashboard, everyone else goes to onboarding
+    if (normalizedEmail === ADMIN_EMAIL) {
+      router.push("/dashboard/admin");
+    } else {
+      router.push("/onboarding");
+    }
   };
 
   return (
