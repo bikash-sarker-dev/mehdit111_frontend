@@ -94,7 +94,7 @@ export const NAV_DATA_ADMIN: NavSection[] = [
           },
           {
             title: "Plans & Pricing",
-            url: "/dashboard/nfc-management",
+            url: "/dashboard/admin/plans-pricing",
             icon: Icons.Tag,
           },
         ],
