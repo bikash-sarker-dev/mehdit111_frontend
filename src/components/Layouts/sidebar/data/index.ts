@@ -110,7 +110,7 @@ export const NAV_DATA_DOWN_ADMIN: NavSection[] = [
       {
         title: "Settings",
         icon: Icons.Settings,
-        url: "/dashboard/settings",
+        url: "/dashboard/admin/settings-admin",
         items: [],
       },
     ],
