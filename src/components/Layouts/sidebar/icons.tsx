@@ -12,6 +12,8 @@ import {
   UserStar,
   MessageCircleQuestionMark,
   CreditCard,
+  CircleDollarSign,
+  Tag,
 } from "lucide-react";
 
 export type PropsType = SVGProps<SVGSVGElement>;
@@ -213,4 +215,6 @@ export {
   UserStar,
   MessageCircleQuestionMark,
   CreditCard,
+  CircleDollarSign,
+  Tag,
 };

@@ -1,7 +1,7 @@
 import * as Icons from "../icons";
 import type { NavSection } from "./types";
 
-export const NAV_DATA: NavSection[] = [
+export const NAV_DATA_USER: NavSection[] = [
   {
     label: "",
     items: [
@@ -40,7 +40,7 @@ export const NAV_DATA: NavSection[] = [
   },
 ];
 
-export const NAV_DATA_DOWN: NavSection[] = [
+export const NAV_DATA_DOWN_USER: NavSection[] = [
   {
     label: "",
     items: [
@@ -60,6 +60,57 @@ export const NAV_DATA_DOWN: NavSection[] = [
         title: "Help",
         icon: Icons.MessageCircleQuestionMark,
         url: "/dashboard/help-manage",
+        items: [],
+      },
+    ],
+  },
+];
+export const NAV_DATA_ADMIN: NavSection[] = [
+  {
+    label: "",
+    items: [
+      {
+        title: "Overview",
+        icon: Icons.LayoutDashboard,
+        url: "/dashboard/admin",
+        items: [],
+      },
+
+      {
+        title: "User Management",
+        url: "/dashboard/admin/user-management",
+        icon: Icons.UserRound,
+        items: [],
+      },
+      {
+        title: "Subscriptions",
+        url: "/dashboard/nfc-management",
+        icon: Icons.CreditCard,
+        items: [
+          {
+            title: "Revenue & Billing",
+            url: "/dashboard/nfc-management",
+            icon: Icons.CircleDollarSign,
+          },
+          {
+            title: "Plans & Pricing",
+            url: "/dashboard/nfc-management",
+            icon: Icons.Tag,
+          },
+        ],
+      },
+    ],
+  },
+];
+
+export const NAV_DATA_DOWN_ADMIN: NavSection[] = [
+  {
+    label: "",
+    items: [
+      {
+        title: "Settings",
+        icon: Icons.Settings,
+        url: "/dashboard/settings",
         items: [],
       },
     ],

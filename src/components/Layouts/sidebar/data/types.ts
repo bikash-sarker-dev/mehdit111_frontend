@@ -1,6 +1,7 @@
 export interface NavSubItem {
   title: string;
   url: string;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 }
 
 export interface NavItem {
