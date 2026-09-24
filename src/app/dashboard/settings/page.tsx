@@ -1,10 +1,9 @@
-import React from "react";
-import ComingSoonPage from "../comingsoon/page";
+import UserSettingsPage from "@/components/dashboardComponents/userSettings/UserSettings";
 
 const page = () => {
   return (
     <div>
-      <ComingSoonPage />
+      <UserSettingsPage />
     </div>
   );
 };
