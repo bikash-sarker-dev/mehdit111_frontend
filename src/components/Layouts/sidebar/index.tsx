@@ -256,7 +256,7 @@ export function Sidebar() {
   /** Matches the exact URL or any nested child route */
   const isActiveUrl = (url?: string): boolean => {
     if (!url) return false;
-    return pathname === url || pathname.startsWith(url + "/");
+    return pathname === url || pathname.startsWith(url + "/dashboard");
   };
 
   const toggleExpanded = (title: string) => {
