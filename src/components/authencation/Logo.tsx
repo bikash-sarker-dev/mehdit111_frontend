@@ -2,7 +2,6 @@ import Image from "next/image";
 
 interface LogoProps {
   className?: string;
-  /** Pixel width to render at — height scales automatically (logo is ~1.97:1). */
   width?: number;
   priority?: boolean;
 }
