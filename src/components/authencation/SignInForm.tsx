@@ -1,51 +1,82 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Mail } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Loader2, Mail } from "lucide-react";
+
 import AuthLayout from "./AuthLayout";
 import Logo from "./Logo";
 import PasswordInput from "./PasswordInput";
 import GoogleButton from "./GoogleButton";
-import { useRouter } from "next/navigation";
+
+import { useSignInMutation } from "@/redux/api/auth/authApi";
 
 interface SignInFormProps {
-  onSubmit?: (data: { email: string; password: string }) => void;
   onGoogleSignIn?: () => void;
   forgotPasswordHref?: string;
   signUpHref?: string;
 }
 
+const ADMIN_EMAIL = "admin@gmail.com";
+
+function getErrorMessage(err: unknown, fallback: string) {
+  const e = err as { data?: { message?: string }; message?: string };
+  return e?.data?.message || e?.message || fallback;
+}
+
 export default function SignInForm({
-  onSubmit,
   onGoogleSignIn,
   forgotPasswordHref = "/forgot-password",
   signUpHref = "/signup",
 }: SignInFormProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const router = useRouter();
 
-  const ADMIN_EMAIL = "admin@gmail.com";
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: FormEvent) => {
+  const [signIn, { isLoading }] = useSignInMutation();
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setError("");
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    // Save the email to localStorage
-    try {
-      localStorage.setItem("userEmail", normalizedEmail);
-    } catch (error) {
-      console.error("Could not save email to localStorage:", error);
+    if (!normalizedEmail || !password) {
+      setError("Enter your email and password.");
+      return;
     }
 
-    onSubmit?.({ email: normalizedEmail, password });
+    try {
+      // API expects: { email, password }
+      const res = await signIn({
+        email: normalizedEmail,
+        password,
+      }).unwrap();
 
-    // Admin goes to the admin dashboard, everyone else goes to onboarding
-    if (normalizedEmail === ADMIN_EMAIL) {
-      router.push("/dashboard/admin");
-    } else {
-      router.push("/onboarding");
+      // Save the email only after a successful sign in
+      try {
+        localStorage.setItem("userEmail", normalizedEmail);
+
+        // 👉 If your API returns a token and you store it manually, do it here.
+        // Adjust the field names to match your response, e.g.:
+        // localStorage.setItem("accessToken", res?.data?.accessToken);
+        void res;
+      } catch (storageError) {
+        console.error("Could not save to localStorage:", storageError);
+      }
+
+      // Admin goes to the admin dashboard, everyone else goes to onboarding
+      if (normalizedEmail === ADMIN_EMAIL) {
+        router.push("/dashboard/admin");
+      } else {
+        router.push("/onboarding");
+      }
+    } catch (err) {
+      setError(
+        getErrorMessage(err, "Incorrect email or password. Please try again."),
+      );
     }
   };
 
@@ -84,7 +115,10 @@ export default function SignInForm({
               autoComplete="email"
               placeholder="ayeshahabib@gmail.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setError("");
+              }}
               className="w-full rounded-xl border border-slate-200 py-3 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
             />
           </div>
@@ -95,14 +129,34 @@ export default function SignInForm({
           autoComplete="current-password"
           placeholder="Password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            setError("");
+          }}
         />
+
+        {error && (
+          <p
+            role="alert"
+            className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600"
+          >
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"
-          className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white shadow-sm shadow-blue-600/25 transition-colors hover:bg-blue-700"
+          disabled={isLoading}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white shadow-sm shadow-blue-600/25 transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Sign in
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Signing in…
+            </>
+          ) : (
+            "Sign in"
+          )}
         </button>
 
         <div className="flex items-center gap-3">

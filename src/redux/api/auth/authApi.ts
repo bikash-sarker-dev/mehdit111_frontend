@@ -91,4 +91,5 @@ export const {
   useRegistrationMutation,
   useRegistrationverifyOtpMutation,
   useResendRegistrationOtpMutation,
+  useSignInMutation,
 } = authApi;
