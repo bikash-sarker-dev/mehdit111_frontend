@@ -10,18 +10,26 @@ export const authApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
-    signUp: builder.mutation({
+    registration: builder.mutation({
       query: (payload) => ({
-        url: "/auth/signup",
+        url: "/auth/register",
         method: "POST",
         body: payload,
       }),
       invalidatesTags: ["User"],
     }),
 
-    signUpverifyEmail: builder.mutation({
+    registrationverifyOtp: builder.mutation({
       query: (body) => ({
-        url: "/auth/verify-signup-otp",
+        url: "/auth/verify-registration-otp",
+        method: "POST",
+        body,
+      }),
+    }),
+
+    resendRegistrationOtp: builder.mutation({
+      query: (body) => ({
+        url: "/auth/resend-otp",
         method: "POST",
         body,
       }),
@@ -74,13 +82,13 @@ export const authApi = baseApi.injectEndpoints({
 });
 
 export const {
-  useSignInMutation,
-  useSignUpMutation,
   useLogoutMutation,
   useVerifyEmailMutation,
   useResendSingUpCodeMutation,
   useForgetPasswordMutation,
   useResetPasswordMutation,
   useGoogleLoginMutation,
-  useSignUpverifyEmailMutation,
+  useRegistrationMutation,
+  useRegistrationverifyOtpMutation,
+  useResendRegistrationOtpMutation,
 } = authApi;
