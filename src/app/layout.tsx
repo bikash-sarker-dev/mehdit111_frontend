@@ -12,7 +12,7 @@ import NextTopLoader from "nextjs-toploader";
 import type { PropsWithChildren } from "react";
 import { Providers } from "./dashboard/providers";
 
-import { Toaster } from "sonner";
+import { Toaster } from "react-hot-toast";
 import ReduxProvider from "@/redux/Provider";
 
 export const metadata: Metadata = {

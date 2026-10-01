@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Mail } from "lucide-react";
+import toast from "react-hot-toast";
 
 import AuthLayout from "./AuthLayout";
 import Logo from "./Logo";
@@ -17,7 +18,35 @@ interface SignInFormProps {
   signUpHref?: string;
 }
 
-const ADMIN_EMAIL = "admin@gmail.com";
+/** Shape of the sign-in API response */
+interface SignInResponse {
+  statusCode: number;
+  success: boolean;
+  message: string;
+  data: {
+    accessToken: string;
+    refreshToken: string;
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      role: string;
+      status: string;
+      isVerified: boolean;
+      image: string | null;
+    };
+  };
+}
+
+/**
+ * Where each role lands after signing in.
+ * Add more roles here (e.g. "super_admin", "business") as your backend needs.
+ */
+const ROLE_ROUTES: Record<string, string> = {
+  admin: "/dashboard/admin",
+  user: "/onboarding",
+};
+const DEFAULT_ROUTE = "/onboarding";
 
 function getErrorMessage(err: unknown, fallback: string) {
   const e = err as { data?: { message?: string }; message?: string };
@@ -49,30 +78,29 @@ export default function SignInForm({
     }
 
     try {
-      // API expects: { email, password }
-      const res = await signIn({
+      const res = (await signIn({
         email: normalizedEmail,
         password,
-      }).unwrap();
+      }).unwrap()) as SignInResponse;
 
-      // Save the email only after a successful sign in
+      const { accessToken, refreshToken, user } = res.data;
+
+      // Save session data
       try {
-        localStorage.setItem("userEmail", normalizedEmail);
-
-        // 👉 If your API returns a token and you store it manually, do it here.
-        // Adjust the field names to match your response, e.g.:
-        // localStorage.setItem("accessToken", res?.data?.accessToken);
-        void res;
+        localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
+        localStorage.setItem("userEmail", user.email);
+        localStorage.setItem("user", JSON.stringify(user));
       } catch (storageError) {
-        console.error("Could not save to localStorage:", storageError);
+        console.error("Could not save session to localStorage:", storageError);
       }
 
-      // Admin goes to the admin dashboard, everyone else goes to onboarding
-      if (normalizedEmail === ADMIN_EMAIL) {
-        router.push("/dashboard/admin");
-      } else {
-        router.push("/onboarding");
-      }
+      // Success toast (uses the API message, with a fallback)
+      toast.success(res.message || "Logged in successfully.");
+
+      // Redirect based on the role returned by the API
+      const role = user.role?.toLowerCase();
+      router.push(ROLE_ROUTES[role] ?? DEFAULT_ROUTE);
     } catch (err) {
       setError(
         getErrorMessage(err, "Incorrect email or password. Please try again."),

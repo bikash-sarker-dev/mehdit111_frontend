@@ -35,13 +35,6 @@ export const authApi = baseApi.injectEndpoints({
       }),
     }),
 
-    verifyEmail: builder.mutation({
-      query: (body) => ({
-        url: "/auth/verify-otp",
-        method: "POST",
-        body,
-      }),
-    }),
     resendSingUpCode: builder.mutation({
       query: (body) => ({
         url: "/auth/resend-signup-otp",
@@ -56,7 +49,13 @@ export const authApi = baseApi.injectEndpoints({
         body,
       }),
     }),
-
+    verifyForgotOtp: builder.mutation({
+      query: (body) => ({
+        url: "/auth/verify-forgot-otp",
+        method: "POST",
+        body,
+      }),
+    }),
     logout: builder.mutation({
       query: () => ({
         url: "/auth/logout",
@@ -83,7 +82,7 @@ export const authApi = baseApi.injectEndpoints({
 
 export const {
   useLogoutMutation,
-  useVerifyEmailMutation,
+  useVerifyForgotOtpMutation,
   useResendSingUpCodeMutation,
   useForgetPasswordMutation,
   useResetPasswordMutation,

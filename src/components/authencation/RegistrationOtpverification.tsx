@@ -10,7 +10,6 @@ import {
 } from "react";
 import { ArrowLeft, CheckCircle2, Loader2, MailCheck } from "lucide-react";
 
-// ⚠️ Change this import path to wherever your RTK Query auth api lives
 import {
   useRegistrationverifyOtpMutation,
   useResendRegistrationOtpMutation,
