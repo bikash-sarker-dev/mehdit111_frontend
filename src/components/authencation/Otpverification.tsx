@@ -1,6 +1,5 @@
 "use client";
 
-// ⚠️ Change this import path to wherever your RTK Query auth api lives
 import {
   useRegistrationverifyOtpMutation,
   useResendRegistrationOtpMutation,
@@ -13,7 +12,6 @@ interface OtpVerificationProps {
   onBack?: () => void;
 }
 
-/** Registration OTP step: a thin wrapper around the shared OtpStep UI */
 export default function OtpVerification({
   email,
   onVerified,
