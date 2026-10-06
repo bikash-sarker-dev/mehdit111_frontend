@@ -27,14 +27,12 @@ export const baseApi = createApi({
     "Progress",
     "Chat",
     "StudentAssignment",
-    "StudentFeedback",
-    "ParentHome",
-    "ChildrenMange",
-    "ParentProgress",
+
     "SchoolManager",
     "Ai",
     "Subscriptoin",
     "parentSubScription",
+    "onboarding",
   ],
 });
 
