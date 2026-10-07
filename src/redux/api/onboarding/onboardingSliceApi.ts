@@ -3,7 +3,7 @@ import baseApi from "../baseApi";
 export const onboardingApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getCheckUserBusinessProfile: builder.query({
-      query: (id) => ({
+      query: () => ({
         url: `/business`,
         method: "GET",
       }),
@@ -83,8 +83,8 @@ export const onboardingApi = baseApi.injectEndpoints({
 
     // setep 5 api
     getStep5: builder.query({
-      query: (query) => ({
-        url: `/nfc/{{cardId}}/qrcode?format=${query}`,
+      query: ({ query, cardId }) => ({
+        url: `/nfc/${cardId}/qrcode?format=${query}`,
         method: "GET",
       }),
       providesTags: ["onboarding"],
