@@ -20,19 +20,11 @@ export const baseApi = createApi({
     "User",
     "SubscriptionPan",
     "UserManagement",
-    "TeamManagement",
-    "SubjectManager",
-    "GradeManager",
-    "Assignment",
-    "Progress",
-    "Chat",
-    "StudentAssignment",
-
     "SchoolManager",
-    "Ai",
     "Subscriptoin",
     "parentSubScription",
     "onboarding",
+    "userOverview",
   ],
 });
 
