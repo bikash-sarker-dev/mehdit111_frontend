@@ -459,7 +459,7 @@ import {
 /*                                   Types                                    */
 /* -------------------------------------------------------------------------- */
 
-type Period = "7 Days" | "30 Days" | "90 Days" | "12 Months";
+type Period = "7 Days" | "30 Days" | "90 Days";
 
 // Backend documents 7 | 30 | 90. "12 Months" is sent as 365d — confirm the
 // backend supports it, or remove that tab from `periods` below.
@@ -467,7 +467,6 @@ const PERIOD_API: Record<Period, string> = {
   "7 Days": "7d",
   "30 Days": "30d",
   "90 Days": "90d",
-  "12 Months": "365d",
 };
 
 interface ApiEnvelope<T> {
@@ -608,7 +607,7 @@ function Skeleton({ className = "" }: { className?: string }) {
 
 export default function ReviewDashboard() {
   const [period, setPeriod] = useState<Period>("30 Days");
-  const periods: Period[] = ["7 Days", "30 Days", "90 Days", "12 Months"];
+  const periods: Period[] = ["7 Days", "30 Days", "90 Days"];
 
   /* 1) Profile — fetched once and cached by RTK Query. Every other query reads
         the businessId from here and is skipped until it's available. */
@@ -637,8 +636,7 @@ export default function ReviewDashboard() {
   const camp = (campRes as ApiEnvelope<CampaignStats> | undefined)?.data;
 
   const businessName = business?.name ?? me?.name ?? "";
-  const rangeLabel =
-    period === "12 Months" ? "Last 12 Months" : `Last ${period}`;
+  const rangeLabel = `Last ${period}`;
 
   /* ----------------------------- Stat cards ------------------------------ */
   const stats: StatCard[] = useMemo(() => {
