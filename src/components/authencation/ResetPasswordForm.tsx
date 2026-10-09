@@ -13,9 +13,8 @@ import AuthLayout from "./AuthLayout";
 import { useResetPasswordMutation } from "@/redux/api/auth/authApi";
 
 interface ResetPasswordFormProps {
-  /** Email the reset code was sent to */
   email?: string;
-  /** The verified 6-digit code */
+
   otp?: string;
   loginHref?: string;
 }
