@@ -1294,7 +1294,7 @@ export default function UserSettingsPage() {
   );
 
   /* ---------- Queries (profile is cached by RTK Query) ---------- */
-  const { data: meRes, isLoading: meLoading } = useGetMeProfileQuery();
+  const { data: meRes, isLoading: meLoading } = useGetMeProfileQuery("");
   const me = meRes?.data;
   const businessId: string | undefined =
     me?.businessId ?? me?.businesses?.[0]?.id;
