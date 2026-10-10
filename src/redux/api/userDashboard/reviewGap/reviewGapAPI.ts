@@ -10,7 +10,16 @@ export const reviewGapApi = baseApi.injectEndpoints({
       }),
       providesTags: ["userReviewGap"],
     }),
+
+    getNfcAnalytics: builder.query({
+      query: (businessId) => ({
+        url: `/nfc/business/${businessId}/stats`,
+        method: "GET",
+      }),
+      providesTags: ["userReviewGap"],
+    }),
   }),
 });
 
-export const { useGetReviewGapAnalyticsQuery } = reviewGapApi;
+export const { useGetReviewGapAnalyticsQuery, useGetNfcAnalyticsQuery } =
+  reviewGapApi;
