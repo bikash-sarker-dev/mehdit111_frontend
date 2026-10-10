@@ -28,6 +28,7 @@ export const baseApi = createApi({
     "userCustomer",
     "userCompetitor",
     "userReviewGap",
+    "userSettings",
   ],
 });
 

@@ -12,7 +12,7 @@ export const competitorsApi = baseApi.injectEndpoints({
         limit = 10,
         sortBy = "rating",
         sortOrder = "desc",
-      } = {}) => ({
+      }) => ({
         url: "/competitor",
         method: "GET",
         params: { businessId, page, limit, sortBy, sortOrder },
