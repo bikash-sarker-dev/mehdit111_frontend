@@ -26,6 +26,7 @@ export const baseApi = createApi({
     "onboarding",
     "userOverview",
     "userCustomer",
+    "userCompetitor",
   ],
 });
 
