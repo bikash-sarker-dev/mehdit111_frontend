@@ -1014,7 +1014,7 @@ export default function PlanAndBilling({
         sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending));
       } catch {}
 
-      window.location.href = checkoutUrl; // redirect to Stripe Checkout
+      window.location.href = checkoutUrl;
     } catch (e) {
       setNotice({
         type: "error",
