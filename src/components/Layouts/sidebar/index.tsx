@@ -1,10 +1,227 @@
+// "use client";
+
+// import { Logo } from "@/components/logo";
+// import { cn } from "@/lib/utils";
+// import Link from "next/link";
+// import { usePathname, useRouter } from "next/navigation";
+// import { useEffect, useState } from "react";
+// import {
+//   NAV_DATA_DOWN_USER,
+//   NAV_DATA_USER,
+//   NAV_DATA_DOWN_ADMIN,
+//   NAV_DATA_ADMIN,
+// } from "./data";
+// import { ArrowLeftIcon, ChevronUp } from "./icons";
+// import { LogOut as LogOutIcon } from "lucide-react";
+// import { MenuItem } from "./menu-item";
+// import { useSidebarContext } from "./sidebar-context";
+// import type { NavItem } from "./data/types";
+
+// const ADMIN_EMAIL = "admin@growmorereviews.com";
+
+// export function Sidebar() {
+//   const pathname = usePathname();
+//   const router = useRouter();
+//   const { setIsOpen, isOpen, isMobile, toggleSidebar } = useSidebarContext();
+
+//   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+//   const [isAdmin, setIsAdmin] = useState(false);
+//   const [ready, setReady] = useState(false);
+
+//   // Read the saved email on the client (localStorage doesn't exist on the server)
+//   useEffect(() => {
+//     try {
+//       const email = localStorage.getItem("userEmail");
+//       setIsAdmin(email?.trim().toLowerCase() === ADMIN_EMAIL);
+//     } catch (error) {
+//       console.error("Could not read email from localStorage:", error);
+//     } finally {
+//       setReady(true);
+//     }
+//   }, []);
+
+//   const NAV_DATA = isAdmin ? NAV_DATA_ADMIN : NAV_DATA_USER;
+//   const NAV_DATA_DOWN = isAdmin ? NAV_DATA_DOWN_ADMIN : NAV_DATA_DOWN_USER;
+
+//   /** Matches the exact URL or any nested child route */
+//   const isActiveUrl = (url?: string): boolean => {
+//     if (!url) return false;
+//     return pathname === url || pathname.startsWith(url + "/dashboard");
+//   };
+
+//   const toggleExpanded = (title: string) => {
+//     setExpandedItems((prev) =>
+//       prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title],
+//     );
+//   };
+
+//   /** Auto-expand if a child matches the current route */
+//   useEffect(() => {
+//     NAV_DATA.forEach((section) =>
+//       section.items.forEach((item: NavItem) => {
+//         if (item.items.some((sub) => isActiveUrl(sub.url))) {
+//           setExpandedItems((prev) =>
+//             prev.includes(item.title) ? prev : [...prev, item.title],
+//           );
+//         }
+//       }),
+//     );
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, [pathname, isAdmin]);
+
+//   const handleLogout = () => {
+//     try {
+//       localStorage.removeItem("userEmail");
+//     } catch {}
+//     if (isMobile) toggleSidebar();
+//     router.push("/signIn");
+//   };
+
+//   /** Shared renderer for the top and bottom nav lists */
+//   const renderNavItems = (items: NavItem[], listSpacing: string) => (
+//     <nav>
+//       <ul className={listSpacing}>
+//         {items.map((item) => {
+//           const hasChildren = item.items.length > 0;
+//           const parentIsActive =
+//             isActiveUrl(item.url) ||
+//             item.items.some((sub) => isActiveUrl(sub.url));
+
+//           return (
+//             <li key={item.title}>
+//               {hasChildren ? (
+//                 <>
+//                   <MenuItem
+//                     isActive={parentIsActive}
+//                     onClick={() => toggleExpanded(item.title)}
+//                   >
+//                     <item.icon className="size-6" />
+//                     <span>{item.title}</span>
+//                     <ChevronUp
+//                       className={cn(
+//                         "ml-auto rotate-180 transition-transform",
+//                         expandedItems.includes(item.title) && "rotate-0",
+//                       )}
+//                     />
+//                   </MenuItem>
+
+//                   {expandedItems.includes(item.title) && (
+//                     <ul className="ml-4 space-y-1.5 pt-2">
+//                       {item.items.map((sub) => (
+//                         <li key={sub.title}>
+//                           <MenuItem
+//                             as="link"
+//                             href={sub.url}
+//                             isActive={isActiveUrl(sub.url)}
+//                           >
+//                             {/* Submenu icon */}
+//                             <sub.icon className="size-5 shrink-0" />
+//                             <span>{sub.title}</span>
+//                           </MenuItem>
+//                         </li>
+//                       ))}
+//                     </ul>
+//                   )}
+//                 </>
+//               ) : (
+//                 <MenuItem
+//                   as="link"
+//                   href={item.url ?? "/"}
+//                   isActive={isActiveUrl(item.url)}
+//                   className="py-3"
+//                 >
+//                   <item.icon className="size-6 shrink-0" />
+//                   <span>{item.title}</span>
+//                 </MenuItem>
+//               )}
+//             </li>
+//           );
+//         })}
+//       </ul>
+//     </nav>
+//   );
+
+//   return (
+//     <>
+//       {isMobile && isOpen && (
+//         <div
+//           className="fixed inset-0 z-40 bg-black/50"
+//           onClick={() => setIsOpen(false)}
+//         />
+//       )}
+
+//       <aside
+//         className={cn(
+//           "max-w-[290px] overflow-hidden border-r bg-white transition-[width] dark:bg-gray-dark",
+//           isMobile ? "fixed bottom-0 top-0 z-50" : "sticky top-0 h-screen",
+//           isOpen ? "w-full" : "w-0",
+//         )}
+//       >
+//         <div className="flex h-full flex-col py-6 pl-[25px] pr-[7px]">
+//           {/* Logo */}
+//           <div className="relative pl-10 pr-4.5">
+//             <Link
+//               href="/"
+//               onClick={() => isMobile && toggleSidebar()}
+//               className="px-0 py-2.5"
+//             >
+//               <Logo />
+//             </Link>
+
+//             {isMobile && (
+//               <button
+//                 onClick={toggleSidebar}
+//                 className="absolute left-3/4 top-1/2 -translate-y-1/2"
+//               >
+//                 <ArrowLeftIcon className="size-7" />
+//               </button>
+//             )}
+//           </div>
+
+//           {/* Navigation (rendered only after the role is known) */}
+//           <div className="custom-scrollbar mt-1 flex-1 overflow-y-auto pr-3">
+//             {ready &&
+//               NAV_DATA.map((section) => (
+//                 <div key={section.label} className="mb-6">
+//                   <h2 className="mb-5 text-sm font-medium text-dark-4">
+//                     {section.label}
+//                   </h2>
+//                   {renderNavItems(section.items, "space-y-2")}
+//                 </div>
+//               ))}
+//           </div>
+
+//           {/* Bottom section + Logout */}
+//           <div className="mt-auto">
+//             <div className="custom-scrollbar mt-6 flex-1 overflow-y-auto pr-3">
+//               {ready &&
+//                 NAV_DATA_DOWN.map((section) => (
+//                   <div key={section.label} className="mb-6">
+//                     {renderNavItems(section.items, "space-y-1")}
+//                   </div>
+//                 ))}
+//             </div>
+
+//             <button
+//               onClick={handleLogout}
+//               className="flex w-full items-center gap-3 rounded-xl bg-red-100 px-4 py-3 text-red-600 hover:bg-red-200"
+//             >
+//               <LogOutIcon className="size-6" />
+//               <span className="font-medium">Logout</span>
+//             </button>
+//           </div>
+//         </div>
+//       </aside>
+//     </>
+//   );
+// }
 "use client";
 
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   NAV_DATA_DOWN_USER,
   NAV_DATA_USER,
@@ -17,7 +234,38 @@ import { MenuItem } from "./menu-item";
 import { useSidebarContext } from "./sidebar-context";
 import type { NavItem } from "./data/types";
 
-const ADMIN_EMAIL = "admin@gmail.com";
+import { useGetMeProfileQuery } from "@/redux/api/getMe/getMeApi";
+
+const ONBOARDING = "/onboarding";
+const SIGN_IN = "/signIn";
+
+interface Business {
+  id: string;
+  name: string;
+  isOnboardingCompleted?: boolean;
+  [key: string]: unknown;
+}
+
+interface Profile {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  businesses?: Business[];
+  businessId?: string | null;
+  [key: string]: unknown;
+}
+
+function NavSkeleton() {
+  return (
+    <div className="animate-pulse space-y-3">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="h-11 rounded-lg bg-gray-200 dark:bg-gray-700" />
+      ))}
+    </div>
+  );
+}
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -25,28 +273,69 @@ export function Sidebar() {
   const { setIsOpen, isOpen, isMobile, toggleSidebar } = useSidebarContext();
 
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [ready, setReady] = useState(false);
 
-  // Read the saved email on the client (localStorage doesn't exist on the server)
-  useEffect(() => {
-    try {
-      const email = localStorage.getItem("userEmail");
-      setIsAdmin(email?.trim().toLowerCase() === ADMIN_EMAIL);
-    } catch (error) {
-      console.error("Could not read email from localStorage:", error);
-    } finally {
-      setReady(true);
-    }
-  }, []);
+  // Always refetch on mount so a previous user's cached profile is never reused
+  const { data, isLoading, isError, error } = useGetMeProfileQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
+
+  // Works whether or not baseApi already unwrapped `data`
+  const profile = ((data as { data?: Profile } | undefined)?.data ??
+    (data as Profile | undefined)) as Profile | undefined;
+
+  const role = String(profile?.role ?? "")
+    .trim()
+    .toLowerCase();
+  const isAdmin = role === "admin";
+  const hasBusiness =
+    Array.isArray(profile?.businesses) && profile!.businesses!.length > 0;
+
+  const ready = !isLoading && !!profile;
 
   const NAV_DATA = isAdmin ? NAV_DATA_ADMIN : NAV_DATA_USER;
   const NAV_DATA_DOWN = isAdmin ? NAV_DATA_DOWN_ADMIN : NAV_DATA_DOWN_USER;
 
-  /** Matches the exact URL or any nested child route */
+  /* ---------- Rules from the API ---------- */
+
+  // Rule: expired/invalid session -> sign in
+  useEffect(() => {
+    if (!isError) return;
+    const status = (error as { status?: number } | undefined)?.status;
+    if (status === 401) router.replace(SIGN_IN);
+  }, [isError, error, router]);
+
+  // Rule: a regular user with no business must finish onboarding first
+  useEffect(() => {
+    if (ready && !isAdmin && !hasBusiness) {
+      router.replace(ONBOARDING);
+    }
+  }, [ready, isAdmin, hasBusiness, router]);
+
+  /* ---------- Active-link logic ---------- */
+
+  // Every URL in the current menu, so the most specific match wins
+  const allUrls = useMemo(
+    () =>
+      [...NAV_DATA, ...NAV_DATA_DOWN]
+        .flatMap((section) =>
+          section.items.flatMap((item: NavItem) => [
+            item.url,
+            ...item.items.map((sub) => sub.url),
+          ]),
+        )
+        .filter(Boolean) as string[],
+    [NAV_DATA, NAV_DATA_DOWN],
+  );
+
+  const matches = (url: string) =>
+    pathname === url || pathname.startsWith(url + "/");
+
+  /** Active only if no other, longer URL also matches (so "/dashboard" isn't always lit) */
   const isActiveUrl = (url?: string): boolean => {
-    if (!url) return false;
-    return pathname === url || pathname.startsWith(url + "/dashboard");
+    if (!url || !matches(url)) return false;
+    return !allUrls.some(
+      (other) => other.length > url.length && matches(other),
+    );
   };
 
   const toggleExpanded = (title: string) => {
@@ -67,14 +356,22 @@ export function Sidebar() {
       }),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, isAdmin]);
+  }, [pathname, role]);
+
+  /* ---------- Logout ---------- */
 
   const handleLogout = () => {
     try {
-      localStorage.removeItem("userEmail");
+      ["accessToken", "refreshToken", "userEmail", "user"].forEach((k) =>
+        localStorage.removeItem(k),
+      );
     } catch {}
+    // Cookie names must match what saveSession() writes
+    ["accessToken", "refreshToken"].forEach((name) => {
+      document.cookie = `${name}=; path=/; max-age=0`;
+    });
     if (isMobile) toggleSidebar();
-    router.push("/signIn");
+    router.push(SIGN_IN);
   };
 
   /** Shared renderer for the top and bottom nav lists */
@@ -114,7 +411,6 @@ export function Sidebar() {
                             href={sub.url}
                             isActive={isActiveUrl(sub.url)}
                           >
-                            {/* Submenu icon */}
                             <sub.icon className="size-5 shrink-0" />
                             <span>{sub.title}</span>
                           </MenuItem>
@@ -178,8 +474,9 @@ export function Sidebar() {
             )}
           </div>
 
-          {/* Navigation (rendered only after the role is known) */}
+          {/* Navigation (rendered only after the profile is loaded) */}
           <div className="custom-scrollbar mt-1 flex-1 overflow-y-auto pr-3">
+            {isLoading && <NavSkeleton />}
             {ready &&
               NAV_DATA.map((section) => (
                 <div key={section.label} className="mb-6">

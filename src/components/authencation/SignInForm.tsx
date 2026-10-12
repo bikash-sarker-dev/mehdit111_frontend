@@ -11,6 +11,7 @@
 // import GoogleButton from "./GoogleButton";
 
 // import { useSignInMutation } from "@/redux/api/auth/authApi";
+// import { saveSession } from "@/lib/session";
 
 // interface SignInFormProps {
 //   onGoogleSignIn?: () => void;
@@ -85,21 +86,13 @@
 
 //       const { accessToken, refreshToken, user } = res.data;
 
-//       // Save session data
-//       try {
-//         localStorage.setItem("accessToken", accessToken);
-//         localStorage.setItem("refreshToken", refreshToken);
-//         localStorage.setItem("userEmail", user.email);
-//         localStorage.setItem("user", JSON.stringify(user));
-//       } catch (storageError) {
-//         console.error("Could not save session to localStorage:", storageError);
-//       }
+//       // Save tokens in cookies (read by baseApi) and the user profile in localStorage
+//       saveSession(accessToken, refreshToken, user);
 
-//       // Success toast (uses the API message, with a fallback)
 //       toast.success(res.message || "Logged in successfully.");
 
 //       // Redirect based on the role returned by the API
-//       const role = user.role?.toLowerCase();
+//       const role = user.role;
 //       router.push(ROLE_ROUTES[role] ?? DEFAULT_ROUTE);
 //     } catch (err) {
 //       setError(
@@ -121,15 +114,6 @@
 //       </div>
 
 //       <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-//         <div className="flex justify-end">
-//           <a
-//             href={forgotPasswordHref}
-//             className="text-sm font-medium text-blue-600 hover:text-blue-700"
-//           >
-//             Forgot Password?
-//           </a>
-//         </div>
-
 //         <div>
 //           <label htmlFor="email" className="sr-only">
 //             Email
@@ -162,6 +146,15 @@
 //             setError("");
 //           }}
 //         />
+
+//         <div className="flex justify-end">
+//           <a
+//             href={forgotPasswordHref}
+//             className="text-sm font-medium text-blue-600 hover:text-blue-700"
+//           >
+//             Forgot password?
+//           </a>
+//         </div>
 
 //         {error && (
 //           <p
@@ -229,6 +222,26 @@ interface SignInFormProps {
   signUpHref?: string;
 }
 
+interface Business {
+  id: string;
+  name: string;
+  isOnboardingCompleted?: boolean;
+  [key: string]: unknown;
+}
+
+interface SignInUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  isVerified: boolean;
+  image: string | null;
+  businesses?: Business[];
+  businessId?: string | null;
+  [key: string]: unknown;
+}
+
 /** Shape of the sign-in API response */
 interface SignInResponse {
   statusCode: number;
@@ -237,31 +250,41 @@ interface SignInResponse {
   data: {
     accessToken: string;
     refreshToken: string;
-    user: {
-      id: string;
-      name: string;
-      email: string;
-      role: string;
-      status: string;
-      isVerified: boolean;
-      image: string | null;
-    };
+    user: SignInUser;
   };
 }
 
-/**
- * Where each role lands after signing in.
- * Add more roles here (e.g. "super_admin", "business") as your backend needs.
- */
-const ROLE_ROUTES: Record<string, string> = {
-  admin: "/dashboard/admin",
-  user: "/onboarding",
-};
-const DEFAULT_ROUTE = "/onboarding";
+const ADMIN_DASHBOARD = "/dashboard/admin";
+const USER_DASHBOARD = "/dashboard"; // <- change if your user dashboard URL differs
+const ONBOARDING = "/onboarding";
 
 function getErrorMessage(err: unknown, fallback: string) {
   const e = err as { data?: { message?: string }; message?: string };
   return e?.data?.message || e?.message || fallback;
+}
+
+/** Reads the role claim from the JWT (fallback if user.role is missing) */
+function getRoleFromToken(token: string): string | undefined {
+  try {
+    const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(payload))?.role;
+  } catch {
+    return undefined;
+  }
+}
+
+function getRedirectPath(user: SignInUser, accessToken: string): string {
+  const role = String(user.role ?? getRoleFromToken(accessToken) ?? "")
+    .trim()
+    .toLowerCase();
+
+  // Admins never need a business
+  if (role === "admin") return ADMIN_DASHBOARD;
+
+  // Regular users: no business -> onboarding, otherwise -> dashboard
+  const hasBusiness =
+    Array.isArray(user.businesses) && user.businesses.length > 0;
+  return hasBusiness ? USER_DASHBOARD : ONBOARDING;
 }
 
 export default function SignInForm({
@@ -294,16 +317,15 @@ export default function SignInForm({
         password,
       }).unwrap()) as SignInResponse;
 
-      const { accessToken, refreshToken, user } = res.data;
+      // Works whether or not baseApi already unwrapped `data`
+      const payload = (res.data ?? res) as SignInResponse["data"];
+      const { accessToken, refreshToken, user } = payload;
 
-      // Save tokens in cookies (read by baseApi) and the user profile in localStorage
       saveSession(accessToken, refreshToken, user);
 
       toast.success(res.message || "Logged in successfully.");
 
-      // Redirect based on the role returned by the API
-      const role = user.role?.toLowerCase();
-      router.push(ROLE_ROUTES[role] ?? DEFAULT_ROUTE);
+      router.replace(getRedirectPath(user, accessToken));
     } catch (err) {
       setError(
         getErrorMessage(err, "Incorrect email or password. Please try again."),
