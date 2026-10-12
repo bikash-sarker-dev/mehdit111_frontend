@@ -10,8 +10,19 @@ export const adminDashboardOverviewApi = baseApi.injectEndpoints({
     }),
 
     getRecentRegisteredUsers: builder.query({
-      query: ({ page, limit }) => ({
-        url: `/user?page=${page}&limit=${limit}`,
+      query: ({ page = 1, limit = 10 }) => ({
+        url: `/user`,
+        method: "GET",
+        params: {
+          page,
+          limit,
+        },
+      }),
+    }),
+
+    getOverviewChart: builder.query({
+      query: () => ({
+        url: `/subscription/admin/overview`,
         method: "GET",
       }),
     }),
@@ -21,4 +32,5 @@ export const adminDashboardOverviewApi = baseApi.injectEndpoints({
 export const {
   useGetPlatformOverviewStatCardsQuery,
   useGetRecentRegisteredUsersQuery,
+  useGetOverviewChartQuery,
 } = adminDashboardOverviewApi;
