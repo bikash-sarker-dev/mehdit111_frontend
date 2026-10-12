@@ -120,7 +120,7 @@ function Avatar({ name, src }: { name: string; src?: string | null }) {
 export function Header() {
   const { toggleSidebar, isMobile } = useSidebarContext();
 
-  const { data, isLoading } = useGetMeProfileQuery();
+  const { data, isLoading } = useGetMeProfileQuery("");
 
   // Works whether or not baseApi already unwrapped `data`
   const profile = ((data as { data?: Profile } | undefined)?.data ??
