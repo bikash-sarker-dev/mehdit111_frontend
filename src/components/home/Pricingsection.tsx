@@ -261,14 +261,35 @@ const PENDING_KEY = "gmr_pending_checkout"; // read by the success page after St
 const INTENT_KEY = "gmr_intended_plan"; // plan chosen before logging in
 
 const currency = (n: number, cur = "USD") =>
-  n.toLocaleString("en-US", {
+  Number(n ?? 0).toLocaleString("en-US", {
     style: "currency",
-    currency: cur,
+    currency: cur || "USD",
     maximumFractionDigits: 0,
   });
 
 const errMsg = (e: any, fallback: string) =>
   e?.data?.message || e?.error || e?.message || fallback;
+
+/**
+ * Pulls the plans array out of whatever shape the API returns.
+ * Handles: [...], { data: [...] }, { data: { plans: [...] } },
+ * { data: { data: [...] } }, { data: { items: [...] } }, etc.
+ */
+const extractPlans = (res: any): ApiPlan[] => {
+  const candidates = [
+    res,
+    res?.data,
+    res?.data?.plans,
+    res?.data?.data,
+    res?.data?.items,
+    res?.plans,
+    res?.items,
+  ];
+  for (const c of candidates) {
+    if (Array.isArray(c)) return c as ApiPlan[];
+  }
+  return [];
+};
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                         */
@@ -285,6 +306,7 @@ export default function PricingSection({
 
   /* ---------------- 1. Is the user logged in? ---------------- */
   // A successful profile request means logged in; a 401 means a visitor.
+  // (The 401 shown in the browser console for visitors is expected.)
   const {
     data: profileRes,
     isLoading: profileLoading,
@@ -321,9 +343,10 @@ export default function PricingSection({
     refetch: refetchPlans,
   } = useGetAvailablePlansPricingQuery(undefined);
 
+  // FIX: `plansRes.data` was not always an array, so `.filter` crashed.
+  // extractPlans() always returns an array, whatever shape the API sends.
   const paidPlans: ApiPlan[] = useMemo(
-    () =>
-      (plansRes?.data ?? []).filter((p: ApiPlan) => p.plan !== "FREE_TRIAL"),
+    () => extractPlans(plansRes).filter((p) => p?.plan !== "FREE_TRIAL"),
     [plansRes],
   );
 
@@ -451,7 +474,7 @@ export default function PricingSection({
           </h2>
           {!profileLoading && !isLoggedIn && (
             <p className="mt-4 text-sm text-slate-500">
-              You'll sign in before paying. New here?{" "}
+              You&apos;ll sign in before paying. New here?{" "}
               <Link
                 href={signupHref}
                 className="font-medium text-blue-600 underline-offset-4 hover:underline"
@@ -468,7 +491,7 @@ export default function PricingSection({
           <div className="mx-auto mt-12 flex max-w-md flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white p-8 text-center">
             <AlertTriangle className="h-6 w-6 text-amber-500" />
             <p className="text-sm text-slate-600">
-              We couldn't load the plans right now.
+              We couldn&apos;t load the plans right now.
             </p>
             <button
               type="button"
@@ -492,20 +515,26 @@ export default function PricingSection({
           </div>
         )}
 
+        {/* Empty state */}
+        {!plansLoading && !plansError && paidPlans.length === 0 && (
+          <div className="mx-auto mt-12 max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center">
+            <p className="text-sm text-slate-600">
+              No plans are available right now. Please check back soon.
+            </p>
+          </div>
+        )}
+
         {/* Plans */}
-        {!plansLoading && !plansError && (
-          <div
-            className={`mx-auto mt-12 grid max-w-md grid-cols-1 gap-6 sm:mt-16 lg:max-w-6xl lg:items-stretch lg:gap-8 ${
-              paidPlans.length >= 4
-                ? "lg:grid-cols-3 xl:grid-cols-3"
-                : "lg:grid-cols-3"
-            }`}
-          >
+        {!plansLoading && !plansError && paidPlans.length > 0 && (
+          <div className="mx-auto mt-12 grid max-w-md grid-cols-1 gap-6 sm:mt-16 lg:max-w-6xl lg:grid-cols-3 lg:items-stretch lg:gap-8">
             {paidPlans.map((plan) => {
               const featured = !!plan.isPopular;
               const isCurrent =
                 isLoggedIn && plan.plan === currentPlanKey && isActive;
               const showTrial = featured && showTrialButton && !isLoggedIn;
+              const features: string[] = Array.isArray(plan.features)
+                ? plan.features
+                : [];
 
               return (
                 <div
@@ -527,7 +556,7 @@ export default function PricingSection({
                       featured ? "text-blue-100" : "text-slate-400"
                     }`}
                   >
-                    {plan.name.toUpperCase()}
+                    {plan.name?.toUpperCase()}
                   </p>
 
                   <div className="mt-3 flex items-baseline gap-1">
@@ -556,7 +585,7 @@ export default function PricingSection({
                   </p>
 
                   <ul className="mt-6 flex-1 space-y-3">
-                    {plan.features.map((feature) => (
+                    {features.map((feature) => (
                       <li key={feature} className="flex items-start gap-2.5">
                         <span
                           className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full ${
@@ -677,42 +706,47 @@ export default function PricingSection({
               )}
 
               <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                What's included
+                What&apos;s included
               </p>
               <div className="mb-4 grid grid-cols-3 gap-2 text-center">
                 <div className="rounded-xl bg-blue-50 px-2 py-3">
                   <p className="text-base font-bold text-blue-700">
-                    {selectedPlan.smsLimit.toLocaleString()}
+                    {(selectedPlan.smsLimit ?? 0).toLocaleString()}
                   </p>
                   <p className="text-[11px] text-blue-600/80">SMS invites</p>
                 </div>
                 <div className="rounded-xl bg-indigo-50 px-2 py-3">
                   <p className="text-base font-bold text-indigo-700">
-                    {selectedPlan.aiReplyLimit.toLocaleString()}
+                    {(selectedPlan.aiReplyLimit ?? 0).toLocaleString()}
                   </p>
                   <p className="text-[11px] text-indigo-600/80">AI replies</p>
                 </div>
                 <div className="rounded-xl bg-emerald-50 px-2 py-3">
                   <p className="text-base font-bold text-emerald-700">
-                    {selectedPlan.nfcCardsIncluded}
+                    {selectedPlan.nfcCardsIncluded ?? 0}
                   </p>
                   <p className="text-[11px] text-emerald-600/80">NFC stands</p>
                 </div>
               </div>
 
               <ul className="mb-5 space-y-2">
-                {selectedPlan.features.slice(0, 4).map((f) => (
-                  <li
-                    key={f}
-                    className="flex items-start gap-2 text-sm text-slate-600"
-                  >
-                    <Check
-                      className="mt-0.5 h-4 w-4 shrink-0 text-blue-600"
-                      strokeWidth={3}
-                    />
-                    {f}
-                  </li>
-                ))}
+                {(Array.isArray(selectedPlan.features)
+                  ? selectedPlan.features
+                  : []
+                )
+                  .slice(0, 4)
+                  .map((f) => (
+                    <li
+                      key={f}
+                      className="flex items-start gap-2 text-sm text-slate-600"
+                    >
+                      <Check
+                        className="mt-0.5 h-4 w-4 shrink-0 text-blue-600"
+                        strokeWidth={3}
+                      />
+                      {f}
+                    </li>
+                  ))}
               </ul>
 
               <div className="mb-5 flex items-center justify-between border-t border-dashed border-slate-200 pt-4">
