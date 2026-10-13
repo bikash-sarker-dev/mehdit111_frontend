@@ -23,8 +23,17 @@ export const adminSubscriptionPanApi = baseApi.injectEndpoints({
     }),
 
     updateSubscriptionPan: builder.mutation({
-      query: ({ businessId, payload }) => ({
-        url: `/subscription/admin-update/${businessId}`,
+      query: ({ planKey, payload }) => ({
+        url: `/subscription/plans/${planKey}`,
+        method: "PATCH",
+        body: payload,
+      }),
+      invalidatesTags: ["SubscriptionPan"],
+    }),
+
+    freeTrailUpdate: builder.mutation({
+      query: (payload) => ({
+        url: `/subscription/free-trial`,
         method: "PATCH",
         body: payload,
       }),
@@ -46,4 +55,5 @@ export const {
   useGetRevenueBillingPlatformStatsQuery,
   useGetPaymentsTransactionsTableQuery,
   useUpdateSubscriptionPanMutation,
+  useFreeTrailUpdateMutation,
 } = adminSubscriptionPanApi;

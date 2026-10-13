@@ -1,4 +1,4 @@
-import PlansPricing from "../PlanPriceingAdmin/Planspricing";
+import PlansPricing from "../../../../components/adminComponents/PlanPriceingAdmin/Planspricing";
 
 const page = () => {
   return (

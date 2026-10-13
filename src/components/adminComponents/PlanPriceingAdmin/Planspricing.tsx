@@ -527,18 +527,40 @@
 // }
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
-// ⚠️ Adjust these import paths to match your project structure.
-import { useGetMeProfileQuery } from "@/redux/api/getMe/getMeApi";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   useGetAllSubscriptionPanQuery,
   useUpdateSubscriptionPanMutation,
+  useFreeTrailUpdateMutation,
 } from "@/redux/api/admin/subscription/adminSubscriptionPlanSliceApi";
 
 /* ----------------------------- Types & data ----------------------------- */
 
+/** Shape returned by the API for each plan. */
+type ApiPlan = {
+  id: string;
+  plan: "FREE_TRIAL" | "STARTER" | "GROWTH" | "PRO" | "ENTERPRISE" | string;
+  name: string;
+  tagline: string;
+  priceMonthly: number;
+  currency: string;
+  features: string[];
+  isPopular: boolean;
+  isActive: boolean;
+  order: number;
+};
+
+type ApiFreeTrial = {
+  id: string;
+  durationDays: number;
+  isActive: boolean;
+};
+
+/** Shape used by the UI. */
 export type Plan = {
-  id: string; // API plan code, e.g. "GROWTH"
+  id: string;
+  /** API plan key, e.g. "STARTER" | "GROWTH" | "PRO" | "ENTERPRISE" (used in the update URL). */
+  planKey: string;
   name: string;
   price: number;
   description: string;
@@ -547,64 +569,42 @@ export type Plan = {
   visible: boolean;
 };
 
-/** Raw plan returned by GET /subscription/plans */
-type ApiPlan = {
-  plan: string;
-  name: string;
-  tagline: string;
+/** Body expected by the update-plan endpoint. */
+type UpdatePlanBody = {
   priceMonthly: number;
-  currency: string;
-  smsLimit: number;
-  aiReplyLimit: number;
-  nfcCardsIncluded: number;
-  isPopular?: boolean;
+  tagline: string;
+  isPopular: boolean;
+  isActive: boolean;
   features: string[];
 };
 
-type ApiSubscription = {
-  id: string;
-  businessId: string;
-  plan: string;
-  status: string;
-  smsLimit: number;
-  smsUsed: number;
-  aiReplyLimit: number;
-  aiReplyUsed: number;
-  nfcCardsIncluded: number;
-  currentPeriodStart?: string;
-  currentPeriodEnd?: string;
-};
-
-type Notice = { type: "success" | "error"; text: string } | null;
-
-type PlansPricingProps = {
-  /** Optional extra hook, called after the subscription was updated successfully. */
-  onSavePlan?: (plan: Plan) => void | Promise<void>;
-  onPlanChange?: (plan: Plan) => void;
-  onTrialChange?: (days: number, enabled: boolean) => void;
-};
-
-const FREE_TRIAL_CODE = "FREE_TRIAL";
-const BUSINESS_ID_CACHE_KEY = "admin:businessId";
-
-const BRAND = "bg-[#1A5CFF] hover:bg-[#1249D6] active:bg-[#0F3DB8]";
-const FOCUS =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A5CFF] focus-visible:ring-offset-2";
-
-const toPlan = (p: ApiPlan): Plan => ({
-  id: p.plan,
+const toUiPlan = (p: ApiPlan): Plan => ({
+  id: p.id,
+  planKey: p.plan,
   name: p.name,
   price: p.priceMonthly,
   description: p.tagline,
   features: p.features ?? [],
-  popular: Boolean(p.isPopular),
-  visible: true,
+  popular: p.isPopular,
+  visible: p.isActive,
 });
 
-const getErrorMessage = (err: unknown) => {
+const toApiBody = (p: Plan): UpdatePlanBody => ({
+  priceMonthly: p.price,
+  tagline: p.description,
+  isPopular: p.popular,
+  isActive: p.visible,
+  features: p.features,
+});
+
+const getErrorMessage = (err: unknown, fallback: string) => {
   const e = err as { data?: { message?: string }; message?: string };
-  return e?.data?.message || e?.message || "Something went wrong. Try again.";
+  return e?.data?.message || e?.message || fallback;
 };
+
+const BRAND = "bg-[#1A5CFF] hover:bg-[#1249D6] active:bg-[#0F3DB8]";
+const FOCUS =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A5CFF] focus-visible:ring-offset-2";
 
 /* -------------------------------- Icons --------------------------------- */
 
@@ -672,11 +672,13 @@ function Switch({
   onChange,
   label,
   tone = "blue",
+  disabled = false,
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
   label: string;
   tone?: "blue" | "green";
+  disabled?: boolean;
 }) {
   const on = tone === "green" ? "bg-green-500" : "bg-[#1A5CFF]";
   return (
@@ -685,8 +687,9 @@ function Switch({
       role="switch"
       aria-checked={checked}
       aria-label={label}
+      disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={`relative h-6 w-10 shrink-0 rounded-full transition-colors duration-200 ${FOCUS} ${
+      className={`relative h-6 w-10 shrink-0 rounded-full transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${FOCUS} ${
         checked ? on : "bg-slate-300"
       }`}
     >
@@ -699,12 +702,12 @@ function Switch({
   );
 }
 
-/* ------------------------------ Skeleton -------------------------------- */
+/* ------------------------------ Loading UI ------------------------------ */
 
-function CardsSkeleton() {
+function PlansSkeleton() {
   return (
-    <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-7 md:grid-cols-2 md:gap-5 lg:grid-cols-3">
-      {[0, 1, 2].map((i) => (
+    <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-7 md:grid-cols-2 md:gap-5 xl:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, i) => (
         <div
           key={i}
           className="h-[540px] animate-pulse rounded-2xl border border-slate-200 bg-slate-50"
@@ -716,145 +719,76 @@ function CardsSkeleton() {
 
 /* ----------------------------- Main component --------------------------- */
 
-export default function PlansPricing({
-  onSavePlan,
-  onPlanChange,
-  onTrialChange,
-}: PlansPricingProps) {
-  /* ---- API: profile (business id) ---- */
-  const { data: profileRes, refetch: refetchProfile } =
-    useGetMeProfileQuery(undefined);
-  const profile = profileRes?.data;
-  const liveBusinessId: string | undefined =
-    profile?.businessId ?? profile?.businesses?.[0]?.id;
+export default function PlansPricing() {
+  /* ---- API ---- */
+  const { data, isLoading, isError, refetch } =
+    useGetAllSubscriptionPanQuery(undefined);
+  const [updateSubscriptionPlan] = useUpdateSubscriptionPanMutation();
+  const [updateFreeTrial, { isLoading: trialSaving }] =
+    useFreeTrailUpdateMutation();
 
-  // Cache the business ID so it is available instantly on the next visit,
-  // and as a fallback while the profile request is still loading.
-  const [cachedBusinessId, setCachedBusinessId] = useState<string | null>(null);
-
-  useEffect(() => {
-    try {
-      setCachedBusinessId(localStorage.getItem(BUSINESS_ID_CACHE_KEY));
-    } catch {
-      /* storage unavailable */
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!liveBusinessId) return;
-    setCachedBusinessId(liveBusinessId);
-    try {
-      localStorage.setItem(BUSINESS_ID_CACHE_KEY, liveBusinessId);
-    } catch {
-      /* storage unavailable */
-    }
-  }, [liveBusinessId]);
-
-  const businessId = liveBusinessId ?? cachedBusinessId ?? undefined;
-
-  const currentSubscription: ApiSubscription | undefined = useMemo(() => {
-    const businesses: Array<{ id: string; subscription?: ApiSubscription }> =
-      profile?.businesses ?? [];
-    return (
-      businesses.find((b) => b.id === businessId)?.subscription ??
-      businesses[0]?.subscription
-    );
-  }, [profile, businessId]);
-
-  /* ---- API: plans + mutation ---- */
-  const {
-    data: plansRes,
-    isLoading: plansLoading,
-    isError: plansError,
-    refetch: refetchPlans,
-  } = useGetAllSubscriptionPanQuery(undefined);
-  const [updateSubscription] = useUpdateSubscriptionPanMutation();
-
-  const apiPlans: ApiPlan[] = useMemo(
-    () => (Array.isArray(plansRes?.data) ? plansRes.data : []),
-    [plansRes],
-  );
-
-  // Free trial is managed in its own section, not as a card.
-  const paidApiPlans = useMemo(
-    () => apiPlans.filter((p) => p.plan !== FREE_TRIAL_CODE),
-    [apiPlans],
-  );
-
-  const trialApiPlan = useMemo(
-    () => apiPlans.find((p) => p.plan === FREE_TRIAL_CODE),
-    [apiPlans],
-  );
+  const apiPlans: ApiPlan[] | undefined = data?.data?.plans;
+  const apiTrial: ApiFreeTrial | undefined = data?.data?.freeTrial;
 
   /* ---- Local state ---- */
-  // Local overrides (price/description/features/visible/popular) are layered on
-  // top of server data so a refetch never wipes the admin's edits.
-  const [overrides, setOverrides] = useState<Record<string, Partial<Plan>>>({});
-
-  const plans: Plan[] = useMemo(
-    () =>
-      paidApiPlans.map((p) => {
-        const base = toPlan(p);
-        return { ...base, ...overrides[base.id] };
-      }),
-    [paidApiPlans, overrides],
-  );
-
+  const [plans, setPlans] = useState<Plan[]>([]);
   // A draft exists only while a card is in edit mode.
   const [drafts, setDrafts] = useState<Record<string, Plan>>({});
   const [focusLastOf, setFocusLastOf] = useState<string | null>(null);
-  const [saving, setSaving] = useState<string | null>(null);
-  const [notice, setNotice] = useState<Notice>(null);
+  // Plan id that currently has a request in flight (save / toggle).
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [message, setMessage] = useState<{
+    type: "error" | "success";
+    text: string;
+  } | null>(null);
 
   const [trialDays, setTrialDays] = useState(14);
   const [trialDraft, setTrialDraft] = useState<string | null>(null);
   const [trialEnabled, setTrialEnabled] = useState(true);
 
-  // Read the trial length from the API once ("14 Days Full Access").
+  /* ---- Sync server data -> local state ---- */
   useEffect(() => {
-    const match = trialApiPlan?.features
-      ?.map((f) => f.match(/^(\d+)\s*days?/i))
-      .find(Boolean);
-    if (match) setTrialDays(parseInt(match[1], 10));
-  }, [trialApiPlan]);
-
-  // Auto-dismiss success notices.
-  useEffect(() => {
-    if (notice?.type !== "success") return;
-    const t = setTimeout(() => setNotice(null), 4000);
-    return () => clearTimeout(t);
-  }, [notice]);
-
-  /* ---- plan helpers ---- */
-  const updatePlan = (id: string, patch: Partial<Plan>) => {
-    const current = plans.find((p) => p.id === id);
-    if (!current) return;
-    setOverrides((o) => ({ ...o, [id]: { ...o[id], ...patch } }));
-    onPlanChange?.({ ...current, ...patch });
-  };
-
-  const setPopular = (id: string, value: boolean) => {
-    // Only one plan carries the "Most Popular" badge at a time.
-    setOverrides((o) => {
-      const next = { ...o };
-      plans.forEach((p) => {
-        const popular = p.id === id ? value : value ? false : p.popular;
-        if (popular !== p.popular) {
-          next[p.id] = { ...next[p.id], popular };
-          onPlanChange?.({ ...p, ...next[p.id] });
-        }
-      });
-      return next;
-    });
-    setDrafts((d) =>
-      d[id] ? { ...d, [id]: { ...d[id], popular: value } } : d,
+    if (!apiPlans) return;
+    setPlans(
+      [...apiPlans]
+        // The free trial is managed in its own section below the cards.
+        .filter((p) => p.plan !== "FREE_TRIAL")
+        .sort((a, b) => a.order - b.order)
+        .map(toUiPlan),
     );
+  }, [apiPlans]);
+
+  useEffect(() => {
+    if (!apiTrial) return;
+    setTrialDays(apiTrial.durationDays);
+    setTrialEnabled(apiTrial.isActive);
+  }, [apiTrial]);
+
+  // Auto-dismiss the success message.
+  useEffect(() => {
+    if (message?.type !== "success") return;
+    const t = setTimeout(() => setMessage(null), 2500);
+    return () => clearTimeout(t);
+  }, [message]);
+
+  /* ---- Helpers ---- */
+  const replacePlan = (next: Plan) =>
+    setPlans((prev) => prev.map((p) => (p.id === next.id ? next : p)));
+
+  /** Send a plan to the API and, on success, reflect it locally. */
+  const persistPlan = async (next: Plan) => {
+    // Slice: query: ({ planKey, payload }) => `/subscription/admin-update/${planKey}`
+    // If the backend wants the Mongo id in the URL instead of the plan key,
+    // change `planKey: next.planKey` to `planKey: next.id`.
+    await updateSubscriptionPlan({
+      planKey: next.id,
+      payload: toApiBody(next),
+    }).unwrap();
+    replacePlan(next);
   };
 
-  const startEdit = (plan: Plan) => {
-    setNotice(null);
+  const startEdit = (plan: Plan) =>
     setDrafts((d) => ({ ...d, [plan.id]: { ...plan } }));
-  };
 
   const patchDraft = (id: string, patch: Partial<Plan>) =>
     setDrafts((d) => ({ ...d, [id]: { ...d[id], ...patch } }));
@@ -885,69 +819,124 @@ export default function PlansPricing({
       },
     }));
 
+  /* ---- Save (edit mode) ---- */
   const savePlan = async (id: string) => {
     const draft = drafts[id];
-    const apiPlan = paidApiPlans.find((p) => p.plan === id);
-    if (!draft || !apiPlan) return;
-
-    if (!businessId) {
-      setNotice({
-        type: "error",
-        text: "Business ID is not available yet. Wait for your profile to load and try again.",
-      });
-      return;
-    }
-
+    if (!draft) return;
     const cleaned: Plan = {
       ...draft,
       features: draft.features.map((f) => f.trim()).filter(Boolean),
     };
 
-    // Plan limits come from the plan catalog; usage, status and period end are
-    // kept from the business's current subscription.
-    const payload = {
-      plan: apiPlan.plan,
-      status: currentSubscription?.status ?? "ACTIVE",
-      smsLimit: apiPlan.smsLimit,
-      smsUsed: currentSubscription?.smsUsed ?? 0,
-      aiReplyLimit: apiPlan.aiReplyLimit,
-      aiReplyUsed: currentSubscription?.aiReplyUsed ?? 0,
-      nfcCardsIncluded: apiPlan.nfcCardsIncluded,
-      currentPeriodEnd: currentSubscription?.currentPeriodEnd,
-    };
-
     try {
-      setSaving(id);
-      setNotice(null);
-      const res = await updateSubscription({ businessId, payload }).unwrap();
-      await onSavePlan?.(cleaned);
+      setBusyId(id);
+      setMessage(null);
+      await persistPlan(cleaned);
 
-      // Price, description and features are not part of the update payload,
-      // so they are kept as local overrides.
-      updatePlan(id, cleaned);
+      // Only one plan carries the "Most Popular" badge at a time.
+      if (cleaned.popular) {
+        const others = plans.filter((p) => p.id !== id && p.popular);
+        await Promise.all(
+          others.map((p) => persistPlan({ ...p, popular: false })),
+        );
+      }
+
       setDrafts((d) => {
         const { [id]: _removed, ...rest } = d;
         return rest;
       });
-      setNotice({
-        type: "success",
-        text: res?.message || `${cleaned.name} plan saved.`,
-      });
-      refetchProfile();
+      setMessage({ type: "success", text: `${cleaned.name} plan updated.` });
     } catch (err) {
-      setNotice({ type: "error", text: getErrorMessage(err) });
+      setMessage({
+        type: "error",
+        text: getErrorMessage(err, "Couldn't save the plan. Try again."),
+      });
     } finally {
-      setSaving(null);
+      setBusyId(null);
     }
   };
 
-  /* ---- trial helpers ---- */
-  const commitTrial = () => {
+  /* ---- "Most Popular" switch ---- */
+  const setPopular = async (plan: Plan, value: boolean) => {
+    // In edit mode just change the draft; it is sent when Save is pressed.
+    if (drafts[plan.id]) {
+      patchDraft(plan.id, { popular: value });
+      return;
+    }
+
+    try {
+      setBusyId(plan.id);
+      setMessage(null);
+      await persistPlan({ ...plan, popular: value });
+
+      if (value) {
+        const others = plans.filter((p) => p.id !== plan.id && p.popular);
+        await Promise.all(
+          others.map((p) => persistPlan({ ...p, popular: false })),
+        );
+      }
+    } catch (err) {
+      setMessage({
+        type: "error",
+        text: getErrorMessage(err, "Couldn't update the popular badge."),
+      });
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  /* ---- Show / hide plan ---- */
+  const toggleVisible = async (plan: Plan) => {
+    try {
+      setBusyId(plan.id);
+      setMessage(null);
+      await persistPlan({ ...plan, visible: !plan.visible });
+    } catch (err) {
+      setMessage({
+        type: "error",
+        text: getErrorMessage(err, "Couldn't change plan visibility."),
+      });
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  /* ---- Free trial ---- */
+  const saveTrial = async (durationDays: number, isActive: boolean) => {
+    if (!apiTrial) return false;
+    try {
+      setMessage(null);
+      // Slice: query: (payload) => ({ url: "/subscription/free-trial", body: payload })
+      // so the argument IS the body: no id, no wrapper.
+      await updateFreeTrial({ durationDays, isActive }).unwrap();
+      setMessage({ type: "success", text: "Free trial updated." });
+      return true;
+    } catch (err) {
+      setMessage({
+        type: "error",
+        text: getErrorMessage(err, "Couldn't update the free trial."),
+      });
+      return false;
+    }
+  };
+
+  const commitTrial = async () => {
     if (trialDraft === null) return;
     const n = Math.min(365, Math.max(1, parseInt(trialDraft, 10) || trialDays));
-    setTrialDays(n);
     setTrialDraft(null);
-    onTrialChange?.(n, trialEnabled);
+    if (n === trialDays) return; // nothing changed, skip the request
+
+    const previous = trialDays;
+    setTrialDays(n);
+    const ok = await saveTrial(n, trialEnabled);
+    if (!ok) setTrialDays(previous);
+  };
+
+  const toggleTrial = async (value: boolean) => {
+    const previous = trialEnabled;
+    setTrialEnabled(value);
+    const ok = await saveTrial(trialDays, value);
+    if (!ok) setTrialEnabled(previous);
   };
 
   /* -------------------------------- UI -------------------------------- */
@@ -963,75 +952,66 @@ export default function PlansPricing({
           </p>
         </header>
 
-        {/* Notice */}
-        {notice && (
+        {message && (
           <div
-            role={notice.type === "error" ? "alert" : "status"}
-            className={`mt-5 flex items-start justify-between gap-3 rounded-lg border px-4 py-3 text-sm ${
-              notice.type === "error"
+            role={message.type === "error" ? "alert" : "status"}
+            className={`mt-4 flex items-center justify-between gap-3 rounded-lg border px-3.5 py-2.5 text-sm ${
+              message.type === "error"
                 ? "border-red-200 bg-red-50 text-red-700"
                 : "border-green-200 bg-green-50 text-green-700"
             }`}
           >
-            <span>{notice.text}</span>
+            <span>{message.text}</span>
             <button
               type="button"
-              onClick={() => setNotice(null)}
+              onClick={() => setMessage(null)}
               aria-label="Dismiss message"
-              className={`-my-1 grid h-7 w-7 shrink-0 place-items-center rounded-full hover:bg-black/5 ${FOCUS}`}
+              className={`grid h-6 w-6 place-items-center rounded-full hover:bg-black/5 ${FOCUS}`}
             >
               <CloseIcon />
             </button>
           </div>
         )}
 
-        {/* Cards */}
-        {plansLoading ? (
-          <CardsSkeleton />
-        ) : plansError ? (
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-8 text-center">
-            <p className="text-sm text-slate-600">
-              Plans could not be loaded. Check your connection and try again.
-            </p>
+        {/* Loading / error states */}
+        {isLoading && <PlansSkeleton />}
+
+        {isError && !isLoading && (
+          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+            <p>We couldn&apos;t load the subscription plans.</p>
             <button
               type="button"
-              onClick={() => refetchPlans()}
-              className={`mt-4 h-10 rounded-lg px-5 text-sm font-medium text-white ${BRAND} ${FOCUS}`}
+              onClick={() => refetch()}
+              className={`mt-3 h-10 rounded-lg px-4 text-sm font-medium text-white ${BRAND} ${FOCUS}`}
             >
-              Retry
+              Try again
             </button>
           </div>
-        ) : (
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-7 md:grid-cols-2 md:gap-5 lg:grid-cols-3">
-            {plans.map((plan, idx) => {
+        )}
+
+        {/* Cards */}
+        {!isLoading && !isError && (
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-7 md:grid-cols-2 md:gap-5 xl:grid-cols-4">
+            {plans.map((plan) => {
               const draft = drafts[plan.id];
               const editing = Boolean(draft);
               const view = draft ?? plan;
-              const isSaving = saving === plan.id;
-              const isCurrent = currentSubscription?.plan === plan.id;
+              const isBusy = busyId === plan.id;
 
               return (
                 <article
                   key={plan.id}
                   aria-label={`${plan.name} plan`}
-                  className={`flex flex-col rounded-2xl border bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition-opacity sm:p-6 lg:min-h-[540px] ${
-                    isCurrent ? "border-[#1A5CFF]" : "border-slate-200"
-                  } ${idx === 2 ? "md:col-span-2 lg:col-span-1" : ""} ${
+                  aria-busy={isBusy}
+                  className={`flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition-opacity sm:p-6 lg:min-h-[540px] ${
                     plan.visible ? "" : "opacity-60"
                   }`}
                 >
                   {/* Top row */}
                   <div className="flex items-center justify-between gap-3">
-                    <div className="flex min-w-0 items-center gap-2">
-                      <h2 className="truncate text-sm font-medium uppercase tracking-wide text-slate-600">
-                        {plan.name}
-                      </h2>
-                      {isCurrent && (
-                        <span className="shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-[#1A5CFF]">
-                          Current plan
-                        </span>
-                      )}
-                    </div>
+                    <h2 className="text-sm font-medium uppercase tracking-wide text-slate-600">
+                      {plan.name}
+                    </h2>
                     <label
                       className={`flex cursor-pointer items-center gap-2 rounded-full py-1 pl-3 pr-1.5 text-[13px] font-medium transition-colors ${
                         view.popular
@@ -1043,7 +1023,8 @@ export default function PlansPricing({
                       <Switch
                         tone="green"
                         checked={view.popular}
-                        onChange={(v) => setPopular(plan.id, v)}
+                        disabled={isBusy}
+                        onChange={(v) => setPopular(plan, v)}
                         label={`Mark ${plan.name} as most popular`}
                       />
                     </label>
@@ -1153,19 +1134,18 @@ export default function PlansPricing({
                   <div className="mt-auto flex items-center gap-3 pt-8">
                     <button
                       type="button"
-                      disabled={isSaving}
+                      disabled={isBusy}
                       onClick={() =>
                         editing ? savePlan(plan.id) : startEdit(plan)
                       }
                       className={`h-12 flex-1 rounded-xl text-[15px] font-medium text-white transition-colors disabled:opacity-70 ${BRAND} ${FOCUS}`}
                     >
-                      {editing ? (isSaving ? "Saving…" : "Save") : "Edit"}
+                      {editing ? (isBusy ? "Saving…" : "Save") : "Edit"}
                     </button>
                     <button
                       type="button"
-                      onClick={() =>
-                        updatePlan(plan.id, { visible: !plan.visible })
-                      }
+                      disabled={isBusy}
+                      onClick={() => toggleVisible(plan)}
                       aria-pressed={!plan.visible}
                       aria-label={
                         plan.visible
@@ -1173,7 +1153,7 @@ export default function PlansPricing({
                           : `Show ${plan.name} plan`
                       }
                       title={plan.visible ? "Hide plan" : "Show plan"}
-                      className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100 ${FOCUS}`}
+                      className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-60 ${FOCUS}`}
                     >
                       {plan.visible ? <EyeOffIcon /> : <EyeIcon />}
                     </button>
@@ -1185,61 +1165,64 @@ export default function PlansPricing({
         )}
 
         {/* Free trial */}
-        <div className="mt-8 sm:mt-9">
-          <h2 className="text-base font-medium text-slate-900">
-            Free trial Management
-          </h2>
-          <div className="mt-3 flex items-center gap-3.5">
-            <div className="flex h-12 w-full max-w-[176px] items-center justify-between rounded-lg border border-slate-200 bg-slate-50 pl-3.5 pr-2 sm:h-11">
-              {trialDraft !== null ? (
-                <div className="flex min-w-0 items-center gap-1.5 text-sm text-slate-600">
-                  <input
-                    autoFocus
-                    inputMode="numeric"
-                    aria-label="Free trial length in days"
-                    value={trialDraft}
-                    onChange={(e) =>
-                      setTrialDraft(
-                        e.target.value.replace(/\D/g, "").slice(0, 3),
-                      )
-                    }
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") commitTrial();
-                      if (e.key === "Escape") setTrialDraft(null);
-                    }}
-                    onBlur={commitTrial}
-                    className="w-10 bg-transparent text-base outline-none sm:text-sm"
-                  />
-                  days
-                </div>
-              ) : (
-                <span className="text-sm text-slate-600">{trialDays} days</span>
-              )}
-              <button
-                type="button"
-                aria-label="Edit free trial length"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() =>
-                  trialDraft !== null
-                    ? commitTrial()
-                    : setTrialDraft(String(trialDays))
-                }
-                className={`grid h-9 w-9 place-items-center rounded-md text-[#1A5CFF] hover:bg-blue-50 ${FOCUS}`}
-              >
-                <BrushIcon />
-              </button>
+        {!isLoading && !isError && apiTrial && (
+          <div className="mt-8 sm:mt-9">
+            <h2 className="text-base font-medium text-slate-900">
+              Free trial Management
+            </h2>
+            <div className="mt-3 flex items-center gap-3.5">
+              <div className="flex h-12 w-full max-w-[176px] items-center justify-between rounded-lg border border-slate-200 bg-slate-50 pl-3.5 pr-2 sm:h-11">
+                {trialDraft !== null ? (
+                  <div className="flex min-w-0 items-center gap-1.5 text-sm text-slate-600">
+                    <input
+                      autoFocus
+                      inputMode="numeric"
+                      aria-label="Free trial length in days"
+                      value={trialDraft}
+                      onChange={(e) =>
+                        setTrialDraft(
+                          e.target.value.replace(/\D/g, "").slice(0, 3),
+                        )
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") commitTrial();
+                        if (e.key === "Escape") setTrialDraft(null);
+                      }}
+                      onBlur={commitTrial}
+                      className="w-10 bg-transparent text-base outline-none sm:text-sm"
+                    />
+                    days
+                  </div>
+                ) : (
+                  <span className="text-sm text-slate-600">
+                    {trialDays} days
+                  </span>
+                )}
+                <button
+                  type="button"
+                  disabled={trialSaving}
+                  aria-label="Edit free trial length"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() =>
+                    trialDraft !== null
+                      ? commitTrial()
+                      : setTrialDraft(String(trialDays))
+                  }
+                  className={`grid h-9 w-9 place-items-center rounded-md text-[#1A5CFF] hover:bg-blue-50 disabled:opacity-60 ${FOCUS}`}
+                >
+                  <BrushIcon />
+                </button>
+              </div>
+              <Switch
+                checked={trialEnabled}
+                disabled={trialSaving}
+                onChange={toggleTrial}
+                label="Enable free trial"
+                tone="blue"
+              />
             </div>
-            <Switch
-              checked={trialEnabled}
-              onChange={(v) => {
-                setTrialEnabled(v);
-                onTrialChange?.(trialDays, v);
-              }}
-              label="Enable free trial"
-              tone="blue"
-            />
           </div>
-        </div>
+        )}
       </div>
     </section>
   );
