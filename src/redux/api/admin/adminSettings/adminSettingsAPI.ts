@@ -2,16 +2,22 @@ import baseApi from "../../baseApi";
 
 export const adminSettingApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    SaveGeneralSettings: builder.mutation({
-      query: ({ businessId, payload }) => ({
-        url: `/business/${businessId}`,
+    getSuperAdminProfilePlatform: builder.query({
+      query: () => ({
+        url: `/user/me`,
+        method: "GET",
+      }),
+      providesTags: ["userSettings"],
+    }),
+    updateAdminProfileGeneralSettings: builder.mutation({
+      query: (payload) => ({
+        url: `/user/me/`,
         method: "PATCH",
         body: payload,
       }),
       invalidatesTags: ["userSettings"],
     }),
-
-    updateProfile: builder.mutation({
+    saveCompanyBrandInfo: builder.mutation({
       query: (payload) => ({
         url: `/user/me/`,
         method: "PATCH",
@@ -20,35 +26,10 @@ export const adminSettingApi = baseApi.injectEndpoints({
       invalidatesTags: ["userSettings"],
     }),
 
-    updateAdminProfileGeneralSettings: builder.mutation({
-      query: (payload) => ({
-        url: `/user/me`,
-        method: "PATCH",
-        body: payload,
-      }),
-      invalidatesTags: ["userSettings"],
-    }),
-
-    getSuperAdminProfilePlatform: builder.query({
-      query: () => ({
-        url: `/user/me`,
-        method: "GET",
-      }),
-      providesTags: ["userSettings"],
-    }),
-
-    changePassword: builder.mutation({
+    changeAdminPassword: builder.mutation({
       query: (payload) => ({
         url: `/auth/change-password`,
         method: "POST",
-        body: payload,
-      }),
-      invalidatesTags: ["userSettings"],
-    }),
-    changeEmailAddress: builder.mutation({
-      query: (payload) => ({
-        url: `/user/me`,
-        method: "PATCH",
         body: payload,
       }),
       invalidatesTags: ["userSettings"],
@@ -57,8 +38,8 @@ export const adminSettingApi = baseApi.injectEndpoints({
 });
 
 export const {
-  useChangeEmailAddressMutation,
-  useChangePasswordMutation,
-  useSaveGeneralSettingsMutation,
-  useUpdateProfileMutation,
+  useGetSuperAdminProfilePlatformQuery,
+  useUpdateAdminProfileGeneralSettingsMutation,
+  useSaveCompanyBrandInfoMutation,
+  useChangeAdminPasswordMutation,
 } = adminSettingApi;

@@ -83,6 +83,32 @@ export const onboardingApi = baseApi.injectEndpoints({
 
     // setep 5 api
     getStep5: builder.query({
+      query: (businessId) => ({
+        url: `/competitor/business/${businessId}/suggestions`,
+        method: "GET",
+      }),
+      providesTags: ["onboarding"],
+    }),
+
+    postStep5: builder.mutation({
+      query: ({ businessId, body }) => ({
+        url: `/competitor/business/${businessId}/bulk`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["onboarding"],
+    }),
+    patchStep5: builder.mutation({
+      query: ({ businessId, body }) => ({
+        url: `/business/${businessId}/onboarding`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["onboarding"],
+    }),
+
+    // setep 5 api
+    getStep6: builder.query({
       query: ({ query, cardId }) => ({
         url: `/nfc/${cardId}/qrcode?format=${query}`,
         method: "GET",
@@ -90,7 +116,7 @@ export const onboardingApi = baseApi.injectEndpoints({
       providesTags: ["onboarding"],
     }),
 
-    postStep5: builder.mutation({
+    postStep6: builder.mutation({
       query: (body) => ({
         url: `/nfc`,
         method: "POST",
@@ -98,7 +124,7 @@ export const onboardingApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["onboarding"],
     }),
-    patchStep5: builder.mutation({
+    patchStep6: builder.mutation({
       query: ({ businessId, body }) => ({
         url: `/business/${businessId}/onboarding`,
         method: "PATCH",
@@ -122,4 +148,7 @@ export const {
   useGetStep5Query,
   usePostStep5Mutation,
   usePatchStep5Mutation,
+  useGetStep6Query,
+  usePostStep6Mutation,
+  usePatchStep6Mutation,
 } = onboardingApi;
