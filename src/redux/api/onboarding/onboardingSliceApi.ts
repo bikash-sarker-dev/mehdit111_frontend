@@ -11,13 +11,6 @@ export const onboardingApi = baseApi.injectEndpoints({
     }),
 
     // setep 1 api
-    getStep1: builder.query({
-      query: (query) => ({
-        url: `/business/search-places?query=${query}`,
-        method: "GET",
-      }),
-      providesTags: ["onboarding"],
-    }),
     postStep1: builder.mutation({
       query: (body) => ({
         url: `/business`,
@@ -28,10 +21,17 @@ export const onboardingApi = baseApi.injectEndpoints({
     }),
 
     // setep 1 api
-    postStep2: builder.mutation({
+    getStep2: builder.query({
+      query: (query) => ({
+        url: `/business/search-places?query=${query}`,
+        method: "GET",
+      }),
+      providesTags: ["onboarding"],
+    }),
+    step2ConnectGMB: builder.mutation({
       query: ({ businessId, body }) => ({
-        url: `/business/${businessId}/sync-google`,
-        method: "POST",
+        url: `/business/${businessId}`,
+        method: "PATCH",
         body,
       }),
       invalidatesTags: ["onboarding"],
@@ -46,7 +46,7 @@ export const onboardingApi = baseApi.injectEndpoints({
     }),
 
     // setep 3 api
-    patchStep3: builder.mutation({
+    step3ReviewRequestChooseChannelSMSEmailNFC: builder.mutation({
       query: ({ businessId, body }) => ({
         url: `/business/${businessId}`,
         method: "PATCH",
@@ -54,20 +54,20 @@ export const onboardingApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["onboarding"],
     }),
-
-    // setep 4 api
-    getStep4: builder.query({
-      query: (query) => ({
-        url: `/competitor/search?query=${query}`,
-        method: "GET",
+    patchStep3: builder.mutation({
+      query: ({ businessId, body }) => ({
+        url: `/business/${businessId}/onboarding`,
+        method: "PATCH",
+        body,
       }),
-      providesTags: ["onboarding"],
+      invalidatesTags: ["onboarding"],
     }),
 
-    postStep4: builder.mutation({
-      query: (body) => ({
-        url: `/competitor`,
-        method: "POST",
+    // setep 4 api
+    step4ReviewRequestConfigureTimingDelay: builder.mutation({
+      query: ({ businessId, body }) => ({
+        url: `/business/${businessId}`,
+        method: "PATCH",
         body,
       }),
       invalidatesTags: ["onboarding"],
@@ -107,7 +107,7 @@ export const onboardingApi = baseApi.injectEndpoints({
       invalidatesTags: ["onboarding"],
     }),
 
-    // setep 5 api
+    // setep 6 api
     getStep6: builder.query({
       query: ({ query, cardId }) => ({
         url: `/nfc/${cardId}/qrcode?format=${query}`,
@@ -132,18 +132,29 @@ export const onboardingApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["onboarding"],
     }),
+
+    patchAllStep7: builder.mutation({
+      query: ({ businessId, body }) => ({
+        url: `/business/${businessId}/onboarding`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["onboarding"],
+    }),
   }),
 });
 
+// this api payload body data
+// this api reponse
 export const {
   useGetCheckUserBusinessProfileQuery,
-  useGetStep1Query,
   usePostStep1Mutation,
-  usePostStep2Mutation,
+  useGetStep2Query,
+  useStep2ConnectGMBMutation,
   usePatchStep2Mutation,
+  useStep3ReviewRequestChooseChannelSMSEmailNFCMutation,
   usePatchStep3Mutation,
-  useGetStep4Query,
-  usePostStep4Mutation,
+  useStep4ReviewRequestConfigureTimingDelayMutation,
   usePatchStep4Mutation,
   useGetStep5Query,
   usePostStep5Mutation,
@@ -151,4 +162,5 @@ export const {
   useGetStep6Query,
   usePostStep6Mutation,
   usePatchStep6Mutation,
+  usePatchAllStep7Mutation,
 } = onboardingApi;
