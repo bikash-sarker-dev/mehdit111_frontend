@@ -40,6 +40,16 @@ export const competitorsApi = baseApi.injectEndpoints({
       }),
       keepUnusedDataFor: 60,
     }),
+
+    // Benchmark stats. Takes the businessId string directly.
+    getCompetitorIntelligence: builder.query({
+      query: (businessId: string) => ({
+        url: `/competitor/business/${businessId}/intelligence`,
+        method: "GET",
+      }),
+      // was "userCustomer" -> now refreshes when competitors are added/removed
+      providesTags: ["userCompetitor"],
+    }),
   }),
 });
 
@@ -47,4 +57,5 @@ export const {
   useGetCompetitorStatsQuery,
   useGetCompetitorsAllQuery,
   useSearchLocalCompetitorsQuery,
+  useGetCompetitorIntelligenceQuery,
 } = competitorsApi;
