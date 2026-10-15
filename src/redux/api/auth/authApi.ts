@@ -72,7 +72,7 @@ export const authApi = baseApi.injectEndpoints({
 
     googleLogin: builder.mutation({
       query: (payload) => ({
-        url: `/auth/social-login`,
+        url: `/auth/google-login`,
         method: "POST",
         body: payload,
       }),

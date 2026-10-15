@@ -19,6 +19,26 @@
 //   signUpHref?: string;
 // }
 
+// interface Business {
+//   id: string;
+//   name: string;
+//   isOnboardingCompleted?: boolean;
+//   [key: string]: unknown;
+// }
+
+// interface SignInUser {
+//   id: string;
+//   name: string;
+//   email: string;
+//   role: string;
+//   status: string;
+//   isVerified: boolean;
+//   image: string | null;
+//   businesses?: Business[];
+//   businessId?: string | null;
+//   [key: string]: unknown;
+// }
+
 // /** Shape of the sign-in API response */
 // interface SignInResponse {
 //   statusCode: number;
@@ -27,31 +47,41 @@
 //   data: {
 //     accessToken: string;
 //     refreshToken: string;
-//     user: {
-//       id: string;
-//       name: string;
-//       email: string;
-//       role: string;
-//       status: string;
-//       isVerified: boolean;
-//       image: string | null;
-//     };
+//     user: SignInUser;
 //   };
 // }
 
-// /**
-//  * Where each role lands after signing in.
-//  * Add more roles here (e.g. "super_admin", "business") as your backend needs.
-//  */
-// const ROLE_ROUTES: Record<string, string> = {
-//   admin: "/dashboard/admin",
-//   user: "/onboarding",
-// };
-// const DEFAULT_ROUTE = "/onboarding";
+// const ADMIN_DASHBOARD = "/dashboard/admin";
+// const USER_DASHBOARD = "/dashboard"; // <- change if your user dashboard URL differs
+// const ONBOARDING = "/onboarding";
 
 // function getErrorMessage(err: unknown, fallback: string) {
 //   const e = err as { data?: { message?: string }; message?: string };
 //   return e?.data?.message || e?.message || fallback;
+// }
+
+// /** Reads the role claim from the JWT (fallback if user.role is missing) */
+// function getRoleFromToken(token: string): string | undefined {
+//   try {
+//     const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+//     return JSON.parse(atob(payload))?.role;
+//   } catch {
+//     return undefined;
+//   }
+// }
+
+// function getRedirectPath(user: SignInUser, accessToken: string): string {
+//   const role = String(user.role ?? getRoleFromToken(accessToken) ?? "")
+//     .trim()
+//     .toLowerCase();
+
+//   // Admins never need a business
+//   if (role === "admin") return ADMIN_DASHBOARD;
+
+//   // Regular users: no business -> onboarding, otherwise -> dashboard
+//   const hasBusiness =
+//     Array.isArray(user.businesses) && user.businesses.length > 0;
+//   return hasBusiness ? USER_DASHBOARD : ONBOARDING;
 // }
 
 // export default function SignInForm({
@@ -84,16 +114,15 @@
 //         password,
 //       }).unwrap()) as SignInResponse;
 
-//       const { accessToken, refreshToken, user } = res.data;
+//       // Works whether or not baseApi already unwrapped `data`
+//       const payload = (res.data ?? res) as SignInResponse["data"];
+//       const { accessToken, refreshToken, user } = payload;
 
-//       // Save tokens in cookies (read by baseApi) and the user profile in localStorage
 //       saveSession(accessToken, refreshToken, user);
 
 //       toast.success(res.message || "Logged in successfully.");
 
-//       // Redirect based on the role returned by the API
-//       const role = user.role;
-//       router.push(ROLE_ROUTES[role] ?? DEFAULT_ROUTE);
+//       router.replace(getRedirectPath(user, accessToken));
 //     } catch (err) {
 //       setError(
 //         getErrorMessage(err, "Incorrect email or password. Please try again."),
@@ -213,82 +242,23 @@ import Logo from "./Logo";
 import PasswordInput from "./PasswordInput";
 import GoogleButton from "./GoogleButton";
 
-import { useSignInMutation } from "@/redux/api/auth/authApi";
+import {
+  useSignInMutation,
+  useGoogleLoginMutation,
+} from "@/redux/api/auth/authApi";
 import { saveSession } from "@/lib/session";
+import {
+  getErrorMessage,
+  getRedirectPath,
+  type AuthResponse,
+} from "@/lib/authRedirect";
 
 interface SignInFormProps {
-  onGoogleSignIn?: () => void;
   forgotPasswordHref?: string;
   signUpHref?: string;
 }
 
-interface Business {
-  id: string;
-  name: string;
-  isOnboardingCompleted?: boolean;
-  [key: string]: unknown;
-}
-
-interface SignInUser {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  status: string;
-  isVerified: boolean;
-  image: string | null;
-  businesses?: Business[];
-  businessId?: string | null;
-  [key: string]: unknown;
-}
-
-/** Shape of the sign-in API response */
-interface SignInResponse {
-  statusCode: number;
-  success: boolean;
-  message: string;
-  data: {
-    accessToken: string;
-    refreshToken: string;
-    user: SignInUser;
-  };
-}
-
-const ADMIN_DASHBOARD = "/dashboard/admin";
-const USER_DASHBOARD = "/dashboard"; // <- change if your user dashboard URL differs
-const ONBOARDING = "/onboarding";
-
-function getErrorMessage(err: unknown, fallback: string) {
-  const e = err as { data?: { message?: string }; message?: string };
-  return e?.data?.message || e?.message || fallback;
-}
-
-/** Reads the role claim from the JWT (fallback if user.role is missing) */
-function getRoleFromToken(token: string): string | undefined {
-  try {
-    const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
-    return JSON.parse(atob(payload))?.role;
-  } catch {
-    return undefined;
-  }
-}
-
-function getRedirectPath(user: SignInUser, accessToken: string): string {
-  const role = String(user.role ?? getRoleFromToken(accessToken) ?? "")
-    .trim()
-    .toLowerCase();
-
-  // Admins never need a business
-  if (role === "admin") return ADMIN_DASHBOARD;
-
-  // Regular users: no business -> onboarding, otherwise -> dashboard
-  const hasBusiness =
-    Array.isArray(user.businesses) && user.businesses.length > 0;
-  return hasBusiness ? USER_DASHBOARD : ONBOARDING;
-}
-
 export default function SignInForm({
-  onGoogleSignIn,
   forgotPasswordHref = "/forgot-password",
   signUpHref = "/signup",
 }: SignInFormProps) {
@@ -299,6 +269,21 @@ export default function SignInForm({
   const [error, setError] = useState("");
 
   const [signIn, { isLoading }] = useSignInMutation();
+  const [googleLogin, { isLoading: isGoogleLoading }] =
+    useGoogleLoginMutation();
+
+  const busy = isLoading || isGoogleLoading;
+
+  /** Saves tokens + user and redirects. Shared by email and Google login. */
+  const completeLogin = (res: AuthResponse) => {
+    // Works whether or not baseApi already unwrapped `data`
+    const payload = (res.data ?? res) as AuthResponse["data"];
+    const { accessToken, refreshToken, user } = payload;
+
+    saveSession(accessToken, refreshToken, user);
+    toast.success(res.message || "Logged in successfully.");
+    router.replace(getRedirectPath(user, accessToken));
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -315,20 +300,24 @@ export default function SignInForm({
       const res = (await signIn({
         email: normalizedEmail,
         password,
-      }).unwrap()) as SignInResponse;
+      }).unwrap()) as AuthResponse;
 
-      // Works whether or not baseApi already unwrapped `data`
-      const payload = (res.data ?? res) as SignInResponse["data"];
-      const { accessToken, refreshToken, user } = payload;
-
-      saveSession(accessToken, refreshToken, user);
-
-      toast.success(res.message || "Logged in successfully.");
-
-      router.replace(getRedirectPath(user, accessToken));
+      completeLogin(res);
     } catch (err) {
       setError(
         getErrorMessage(err, "Incorrect email or password. Please try again."),
+      );
+    }
+  };
+
+  const handleGoogleSuccess = async (idToken: string) => {
+    setError("");
+    try {
+      const res = (await googleLogin({ idToken }).unwrap()) as AuthResponse;
+      completeLogin(res);
+    } catch (err) {
+      setError(
+        getErrorMessage(err, "Google sign-in failed. Please try again."),
       );
     }
   };
@@ -399,7 +388,7 @@ export default function SignInForm({
 
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={busy}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white shadow-sm shadow-blue-600/25 transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isLoading ? (
@@ -418,7 +407,19 @@ export default function SignInForm({
           <span className="h-px flex-1 bg-slate-200" />
         </div>
 
-        <GoogleButton onClick={onGoogleSignIn} />
+        {isGoogleLoading && (
+          <p className="flex items-center justify-center gap-2 text-sm text-slate-500">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Signing in with Google…
+          </p>
+        )}
+
+        <GoogleButton
+          text="signin_with"
+          disabled={busy}
+          onSuccess={handleGoogleSuccess}
+          onError={setError}
+        />
 
         <p className="pt-1 text-center text-sm text-slate-500">
           Don&apos;t have an account?{" "}

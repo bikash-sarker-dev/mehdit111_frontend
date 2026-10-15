@@ -1,7 +1,8 @@
 // "use client";
 
 // import { useState, type FormEvent } from "react";
-// import { Mail, User } from "lucide-react";
+// import { useRouter } from "next/navigation";
+// import { Loader2, Mail, User } from "lucide-react";
 
 // import PasswordInput from "./PasswordInput";
 // import GoogleButton from "./GoogleButton";
@@ -9,30 +10,71 @@
 // import AuthLayout from "./AuthLayout";
 // import Logo from "./Logo";
 
+// // ⚠️ Change this import path to wherever your RTK Query auth api lives
+// import { useRegistrationMutation } from "@/redux/api/auth/authApi";
+// import RegistrationOtpVerification from "./RegistrationOtpverification";
+
 // interface SignUpFormProps {
-//   onSubmit?: (data: {
-//     fullName: string;
-//     email: string;
-//     password: string;
-//   }) => void;
 //   onGoogleSignUp?: () => void;
 //   loginHref?: string;
 // }
 
+// function getErrorMessage(err: unknown, fallback: string) {
+//   const e = err as { data?: { message?: string }; message?: string };
+//   return e?.data?.message || e?.message || fallback;
+// }
+
 // export default function SignUpForm({
-//   onSubmit,
 //   onGoogleSignUp,
 //   loginHref = "/signIn",
 // }: SignUpFormProps) {
+//   const router = useRouter();
+
+//   const [step, setStep] = useState<"register" | "verify">("register");
 //   const [fullName, setFullName] = useState("");
 //   const [email, setEmail] = useState("");
 //   const [password, setPassword] = useState("");
+//   const [error, setError] = useState("");
 
-//   const handleSubmit = (e: FormEvent) => {
+//   const [registration, { isLoading }] = useRegistrationMutation();
+
+//   const handleSubmit = async (e: FormEvent) => {
 //     e.preventDefault();
-//     onSubmit?.({ fullName, email, password });
+//     setError("");
+
+//     if (!fullName.trim() || !email.trim() || !password) {
+//       setError("Please fill in your name, email and password.");
+//       return;
+//     }
+
+//     try {
+//       // API expects: { name, email, password }
+//       await registration({
+//         name: fullName.trim(),
+//         email: email.trim(),
+//         password,
+//       }).unwrap();
+
+//       setStep("verify"); // OTP has been emailed → show the OTP screen
+//     } catch (err) {
+//       setError(getErrorMessage(err, "Registration failed. Please try again."));
+//     }
 //   };
 
+//   /* ---------- Step 2: OTP ---------- */
+//   if (step === "verify") {
+//     return (
+//       <AuthLayout>
+//         <RegistrationOtpVerification
+//           email={email.trim()}
+//           onBack={() => setStep("register")}
+//           onVerified={() => router.push(loginHref)}
+//         />
+//       </AuthLayout>
+//     );
+//   }
+
+//   /* ---------- Step 1: Register ---------- */
 //   return (
 //     <AuthLayout>
 //       <div className="flex flex-col items-center text-center">
@@ -99,11 +141,28 @@
 //           onChange={(e) => setPassword(e.target.value)}
 //         />
 
+//         {error && (
+//           <p
+//             role="alert"
+//             className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600"
+//           >
+//             {error}
+//           </p>
+//         )}
+
 //         <button
 //           type="submit"
-//           className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white shadow-sm shadow-blue-600/25 transition-colors hover:bg-blue-700"
+//           disabled={isLoading}
+//           className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white shadow-sm shadow-blue-600/25 transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
 //         >
-//           Create Account
+//           {isLoading ? (
+//             <>
+//               <Loader2 className="h-4 w-4 animate-spin" />
+//               Creating account…
+//             </>
+//           ) : (
+//             "Create Account"
+//           )}
 //         </button>
 
 //         <div className="flex items-center gap-3">
@@ -132,31 +191,30 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Mail, User } from "lucide-react";
+import toast from "react-hot-toast";
 
 import PasswordInput from "./PasswordInput";
 import GoogleButton from "./GoogleButton";
-
 import AuthLayout from "./AuthLayout";
 import Logo from "./Logo";
-
-// ⚠️ Change this import path to wherever your RTK Query auth api lives
-import { useRegistrationMutation } from "@/redux/api/auth/authApi";
 import RegistrationOtpVerification from "./RegistrationOtpverification";
 
+import {
+  useRegistrationMutation,
+  useGoogleLoginMutation,
+} from "@/redux/api/auth/authApi";
+import { saveSession } from "@/lib/session";
+import {
+  getErrorMessage,
+  getRedirectPath,
+  type AuthResponse,
+} from "@/lib/authRedirect";
+
 interface SignUpFormProps {
-  onGoogleSignUp?: () => void;
   loginHref?: string;
 }
 
-function getErrorMessage(err: unknown, fallback: string) {
-  const e = err as { data?: { message?: string }; message?: string };
-  return e?.data?.message || e?.message || fallback;
-}
-
-export default function SignUpForm({
-  onGoogleSignUp,
-  loginHref = "/signIn",
-}: SignUpFormProps) {
+export default function SignUpForm({ loginHref = "/signIn" }: SignUpFormProps) {
   const router = useRouter();
 
   const [step, setStep] = useState<"register" | "verify">("register");
@@ -166,6 +224,10 @@ export default function SignUpForm({
   const [error, setError] = useState("");
 
   const [registration, { isLoading }] = useRegistrationMutation();
+  const [googleLogin, { isLoading: isGoogleLoading }] =
+    useGoogleLoginMutation();
+
+  const busy = isLoading || isGoogleLoading;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -187,6 +249,24 @@ export default function SignUpForm({
       setStep("verify"); // OTP has been emailed → show the OTP screen
     } catch (err) {
       setError(getErrorMessage(err, "Registration failed. Please try again."));
+    }
+  };
+
+  const handleGoogleSuccess = async (idToken: string) => {
+    setError("");
+    try {
+      const res = (await googleLogin({ idToken }).unwrap()) as AuthResponse;
+
+      const payload = (res.data ?? res) as AuthResponse["data"];
+      const { accessToken, refreshToken, user } = payload;
+
+      saveSession(accessToken, refreshToken, user);
+      toast.success(res.message || "Signed up successfully.");
+      router.replace(getRedirectPath(user, accessToken));
+    } catch (err) {
+      setError(
+        getErrorMessage(err, "Google sign-up failed. Please try again."),
+      );
     }
   };
 
@@ -281,7 +361,7 @@ export default function SignUpForm({
 
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={busy}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white shadow-sm shadow-blue-600/25 transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isLoading ? (
@@ -300,7 +380,19 @@ export default function SignUpForm({
           <span className="h-px flex-1 bg-slate-200" />
         </div>
 
-        <GoogleButton onClick={onGoogleSignUp} />
+        {isGoogleLoading && (
+          <p className="flex items-center justify-center gap-2 text-sm text-slate-500">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Signing up with Google…
+          </p>
+        )}
+
+        <GoogleButton
+          text="signup_with"
+          disabled={busy}
+          onSuccess={handleGoogleSuccess}
+          onError={setError}
+        />
 
         <p className="pt-1 text-center text-sm text-slate-500">
           Already have an account?{" "}
