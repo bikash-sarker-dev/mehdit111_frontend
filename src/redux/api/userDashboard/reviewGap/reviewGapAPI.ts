@@ -3,10 +3,9 @@ import baseApi from "../../baseApi";
 export const reviewGapApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getReviewGapAnalytics: builder.query({
-      query: ({ businessId, period }) => ({
-        url: `/analytics/dashboard/${businessId}`, // backticks, single slash
+      query: (businessId) => ({
+        url: `/competitor/business/${businessId}/review-gap`,
         method: "GET",
-        params: { period }, // businessId is already in the path
       }),
       providesTags: ["userReviewGap"],
     }),
