@@ -84,8 +84,17 @@ import { MenuIcon } from "./icons";
 import { Notification } from "./notification";
 
 import { useGetMeProfileQuery } from "@/redux/api/getMe/getMeApi"; // <- adjust path if needed
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 interface Profile {
+  name?: string;
+  email?: string;
+  image?: string | null;
+  role?: string;
+}
+
+interface myUserType {
   name?: string;
   email?: string;
   image?: string | null;
@@ -121,13 +130,15 @@ export function Header() {
   const { toggleSidebar, isMobile } = useSidebarContext();
 
   const { data, isLoading } = useGetMeProfileQuery("");
+  const myUser = useSelector((state: RootState) => state.user.user);
+  console.log("header=========", myUser?.name, myUser?.email);
 
   // Works whether or not baseApi already unwrapped `data`
   const profile = ((data as { data?: Profile } | undefined)?.data ??
     (data as Profile | undefined)) as Profile | undefined;
 
-  const name = profile?.name ?? "User";
-  const email = profile?.email ?? "";
+  const name = myUser?.name ?? "User";
+  const email = myUser?.email ?? "";
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between border-b border-stroke bg-white px-4 py-5 shadow-1 dark:border-stroke-dark dark:bg-gray-dark md:px-5 2xl:px-10">
@@ -171,7 +182,7 @@ export function Header() {
             </div>
           ) : (
             <figure className="flex items-center gap-2.5 px-5 py-3.5">
-              <Avatar name={name} src={profile?.image} />
+              <Avatar name={name} src={myUser?.image} />
 
               <figcaption className="space-y-1 text-sm font-medium sm:text-base">
                 <div className="mb-2 leading-none text-dark dark:text-white">
