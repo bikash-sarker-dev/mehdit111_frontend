@@ -532,6 +532,8 @@ import { useSidebarContext } from "./sidebar-context";
 import type { NavItem } from "./data/types";
 
 import { useGetMeProfileQuery } from "@/redux/api/getMe/getMeApi";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 const ONBOARDING = "/onboarding";
 const SIGN_IN = "/signIn";
@@ -570,13 +572,13 @@ export function Sidebar() {
   const { setIsOpen, isOpen, isMobile, toggleSidebar } = useSidebarContext();
 
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
-
+  const myUser = useSelector((state: RootState) => state.user.user);
   // Always refetch on mount so a previous user's cached profile is never reused
   const { data, isLoading, isFetching, isError, error, refetch } =
     useGetMeProfileQuery(undefined, {
       refetchOnMountOrArgChange: true,
     });
-
+  console.log("myUser data==", myUser?.role);
   // Works whether or not baseApi already unwrapped `data`
   const profile = ((data as { data?: Profile } | undefined)?.data ??
     (data as Profile | undefined)) as Profile | undefined;
@@ -584,7 +586,8 @@ export function Sidebar() {
   const role = String(profile?.role ?? "")
     .trim()
     .toLowerCase();
-  const isAdmin = role === "admin";
+
+  const isAdmin = myUser?.role === "admin";
   const hasBusiness =
     Array.isArray(profile?.businesses) && profile!.businesses!.length > 0;
 
