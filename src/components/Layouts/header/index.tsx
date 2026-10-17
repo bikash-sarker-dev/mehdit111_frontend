@@ -131,7 +131,6 @@ export function Header() {
 
   const { data, isLoading } = useGetMeProfileQuery("");
   const myUser = useSelector((state: RootState) => state.user.user);
-  console.log("header=========", myUser?.name, myUser?.email);
 
   // Works whether or not baseApi already unwrapped `data`
   const profile = ((data as { data?: Profile } | undefined)?.data ??

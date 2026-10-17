@@ -669,12 +669,16 @@ export function Sidebar() {
 
   const handleLogout = () => {
     try {
-      ["accessToken", "refreshToken", "userEmail", "user"].forEach((k) =>
-        localStorage.removeItem(k),
-      );
+      [
+        "accessToken",
+        "refreshToken",
+        "userEmail",
+        "user",
+        "persist:root",
+      ].forEach((k) => localStorage.removeItem(k));
     } catch {}
     // Cookie names must match what saveSession() writes
-    ["accessToken", "refreshToken"].forEach((name) => {
+    ["token", "refreshToken"].forEach((name) => {
       document.cookie = `${name}=; path=/; max-age=0`;
     });
     if (isMobile) toggleSidebar();
