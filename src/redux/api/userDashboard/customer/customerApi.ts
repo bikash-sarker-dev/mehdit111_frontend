@@ -99,12 +99,12 @@ export const customerApi = baseApi.injectEndpoints({
 
     addCustomerSMS: builder.mutation({
       query: (payload) => ({ url: "/campaign", method: "POST", body: payload }),
-      invalidatesTags: ["userCustomer"],
+      invalidatesTags: ["userCustomer", "userOverview"],
     }),
 
     addCustomerEmail: builder.mutation({
       query: (payload) => ({ url: "/campaign", method: "POST", body: payload }),
-      invalidatesTags: ["userCustomer"],
+      invalidatesTags: ["userCustomer", "userOverview"],
     }),
 
     resendRequestCustomer: builder.mutation({
@@ -112,7 +112,7 @@ export const customerApi = baseApi.injectEndpoints({
         url: `/campaign/${campaignId}/resend`,
         method: "POST",
       }),
-      invalidatesTags: ["userCustomer"],
+      invalidatesTags: ["userCustomer", "userOverview"],
     }),
 
     bulkImportCustomers: builder.mutation({
@@ -121,7 +121,7 @@ export const customerApi = baseApi.injectEndpoints({
         method: "POST",
         body: payload,
       }),
-      invalidatesTags: ["userCustomer"],
+      invalidatesTags: ["userCustomer", "userOverview"],
     }),
 
     deleteCustomer: builder.mutation({
@@ -129,7 +129,7 @@ export const customerApi = baseApi.injectEndpoints({
         url: `/campaign/${campaignId}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["userCustomer"],
+      invalidatesTags: ["userCustomer", "userOverview"],
     }),
   }),
 });
