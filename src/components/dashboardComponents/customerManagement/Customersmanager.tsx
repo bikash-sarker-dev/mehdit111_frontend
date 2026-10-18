@@ -1357,8 +1357,12 @@ function AddCustomerModal({
         channel,
       }).unwrap();
 
-      const aiText = res?.data?.message || res?.message;
-      if (aiText) {
+      const aiText =
+        res?.data?.generated_message ||
+        res?.data?.message ||
+        res?.generated_message;
+
+      if (aiText && typeof aiText === "string") {
         setMessage(aiText);
       }
     } catch (err: any) {
