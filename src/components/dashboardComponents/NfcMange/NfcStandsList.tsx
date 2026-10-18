@@ -15,7 +15,10 @@ import {
   X,
   Info,
   Radio,
+  Lock,
+  ArrowRight,
 } from "lucide-react";
+import Link from "next/link";
 import toast from "react-hot-toast";
 import {
   useGetNfcCardsQuery,
@@ -48,14 +51,17 @@ interface NfcCardItem {
 interface NfcStandsListProps {
   businessId?: string;
   businessName?: string;
+  allowedStands?: number;
 }
 
 export default function NfcStandsList({
   businessId,
   businessName,
+  allowedStands = 1,
 }: NfcStandsListProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [labelInput, setLabelInput] = useState("");
   const [previewCard, setPreviewCard] = useState<NfcCardItem | null>(null);
   const [printCard, setPrintCard] = useState<NfcCardItem | null>(null);
@@ -218,14 +224,40 @@ export default function NfcStandsList({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsCreateModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-        >
-          <Plus className="h-4 w-4" />
-          Create New Stand
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="text-right hidden sm:block">
+            <span className="text-xs font-semibold text-gray-500 dark:text-slate-400">
+              Plan Quota:
+            </span>
+            <p className="text-sm font-bold text-gray-900 dark:text-white">
+              {cards.length} / {allowedStands} Stands Used
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (cards.length >= allowedStands) {
+                setIsUpgradeModalOpen(true);
+              } else {
+                setIsCreateModalOpen(true);
+              }
+            }}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            {cards.length >= allowedStands ? (
+              <>
+                <Lock className="h-4 w-4" />
+                Upgrade for More Stands
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4" />
+                Create New Stand
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Step-by-step Execution Banner (Matching Mehdi's Workflow) */}
@@ -505,6 +537,71 @@ export default function NfcStandsList({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Quota Exceeded / Upgrade Required */}
+      {isUpgradeModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#0b1727] border border-gray-100 dark:border-slate-800 p-6 shadow-2xl relative">
+            <button
+              onClick={() => setIsUpgradeModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="flex flex-col items-center text-center pt-2">
+              <div className="h-14 w-14 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-amber-600 flex items-center justify-center mb-4 shadow-inner">
+                <Lock className="h-7 w-7" />
+              </div>
+
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                NFC Stands Limit Reached
+              </h3>
+
+              <p className="text-sm text-gray-600 dark:text-slate-300 mb-5 leading-relaxed">
+                Your current plan includes <span className="font-semibold text-blue-600 dark:text-blue-400">{allowedStands} NFC Stand</span>. 
+                You have already deployed all of them ({cards.length} / {allowedStands}).
+              </p>
+
+              <div className="w-full bg-slate-50 dark:bg-slate-900/60 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 mb-6 text-left space-y-2.5">
+                <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                  Available Upgrades:
+                </p>
+                <div className="flex items-center justify-between text-xs sm:text-sm">
+                  <span className="font-medium text-gray-700 dark:text-slate-300">Growth Plan</span>
+                  <span className="font-bold text-blue-600 dark:text-blue-400">2 Stands Included</span>
+                </div>
+                <div className="flex items-center justify-between text-xs sm:text-sm">
+                  <span className="font-medium text-gray-700 dark:text-slate-300">Pro Plan</span>
+                  <span className="font-bold text-blue-600 dark:text-blue-400">5 Stands Included</span>
+                </div>
+                <div className="flex items-center justify-between text-xs sm:text-sm">
+                  <span className="font-medium text-gray-700 dark:text-slate-300">Enterprise Plan</span>
+                  <span className="font-bold text-blue-600 dark:text-blue-400">15 Stands Included</span>
+                </div>
+              </div>
+
+              <div className="flex w-full items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsUpgradeModalOpen(false)}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-semibold text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800"
+                >
+                  Cancel
+                </button>
+                <Link
+                  href="/dashboard/plan-management"
+                  onClick={() => setIsUpgradeModalOpen(false)}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-sm font-semibold text-white shadow-sm"
+                >
+                  <span>Upgrade Plan</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       )}

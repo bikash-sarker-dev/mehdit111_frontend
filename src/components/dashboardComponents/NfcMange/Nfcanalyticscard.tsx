@@ -286,6 +286,8 @@ interface NfcStatsData {
     period?: string;
     data?: TapDataPoint[];
   };
+  subscriptionNfcIncluded?: number;
+  allowedCards?: number;
 }
 
 interface StatCardProps {
@@ -575,6 +577,7 @@ export default function NFCAnalyticsCard() {
       <NfcStandsList
         businessId={businessId}
         businessName={profileData?.businessName ?? profileData?.businesses?.[0]?.name}
+        allowedStands={stats?.subscriptionNfcIncluded || 1}
       />
     </div>
   );
