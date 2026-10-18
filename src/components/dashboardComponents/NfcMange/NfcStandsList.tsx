@@ -71,7 +71,12 @@ export default function NfcStandsList({
   const [updateNfcCard, { isLoading: isUpdating }] = useUpdateNfcCardMutation();
   const [deleteNfcCard, { isLoading: isDeleting }] = useDeleteNfcCardMutation();
 
-  const cards: NfcCardItem[] = cardsResponse?.data || [];
+  const rawCards: any = cardsResponse?.data ?? cardsResponse;
+  const cards: NfcCardItem[] = Array.isArray(rawCards)
+    ? rawCards
+    : Array.isArray(rawCards?.data)
+    ? rawCards.data
+    : [];
 
   const handleCopyUrl = async (cardId: string, url: string) => {
     try {
