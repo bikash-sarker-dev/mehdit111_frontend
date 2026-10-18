@@ -1,8 +1,14 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
+
+interface FooterLink {
+  label: string;
+  href: string;
+}
 
 interface FooterColumn {
   title: string;
-  links: string[];
+  links: FooterLink[];
 }
 
 interface ContactItem {
@@ -14,25 +20,36 @@ interface ContactItem {
 const columns: FooterColumn[] = [
   {
     title: "Navigate",
-    links: ["How It Works", "Features", "Pricing", "FAQ"],
+    links: [
+      { label: "How It Works", href: "/#how-it-works" },
+      { label: "Features", href: "/#features" },
+      { label: "Pricing", href: "/#pricing" },
+      { label: "FAQ", href: "/#faq" },
+    ],
   },
   {
     title: "Product",
     links: [
-      "Automated Review Requests",
-      "QuickSend",
-      "NFC",
-      "Review Gap",
-      "AI Growth Report",
+      { label: "Automated Review Requests", href: "/#features" },
+      { label: "QuickSend", href: "/#quicksend" },
+      { label: "NFC", href: "/#how-it-works" },
+      { label: "Review Gap", href: "/#review-gap" },
+      { label: "AI Growth Report", href: "/#how-it-works" },
     ],
   },
   {
     title: "Account",
-    links: ["Log In", "Get Started"],
+    links: [
+      { label: "Log In", href: "/signIn" },
+      { label: "Get Started", href: "/signup" },
+    ],
   },
   {
     title: "Legal",
-    links: ["Privacy Policy", "Terms of Service"],
+    links: [
+      { label: "Privacy Policy", href: "/privacy-policy" },
+      { label: "Terms of Service", href: "/terms-of-service" },
+    ],
   },
 ];
 
@@ -152,12 +169,13 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-6 lg:gap-8">
           {/* Logo + tagline */}
           <div className="lg:col-span-2">
-            {/* Replace the src below with your own logo image */}
-            <img
-              src="/images/logo/logo.png"
-              alt="Review Growth AI"
-              className="h-14 w-auto object-contain"
-            />
+            <Link href="/" className="inline-block transition-opacity hover:opacity-90">
+              <img
+                src="/images/logo/logo.png"
+                alt="Grow More Reviews"
+                className="h-14 w-auto object-contain"
+              />
+            </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-400">
               Review Growth + Reputation Management + Competitor Intelligence
               for local businesses.
@@ -171,13 +189,13 @@ export default function Footer() {
               </h3>
               <ul className="mt-4 space-y-3">
                 {column.links.map((link) => (
-                  <li key={link}>
-                    <a
-                      href="#"
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
                       className="text-sm text-slate-300 transition-colors hover:text-white"
                     >
-                      {link}
-                    </a>
+                      {link.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
