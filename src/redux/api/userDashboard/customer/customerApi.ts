@@ -124,6 +124,14 @@ export const customerApi = baseApi.injectEndpoints({
       invalidatesTags: ["userCustomer", "userOverview"],
     }),
 
+    generateAiMessage: builder.mutation({
+      query: (payload) => ({
+        url: "/campaign/generate-ai-message",
+        method: "POST",
+        body: payload,
+      }),
+    }),
+
     deleteCustomer: builder.mutation({
       query: (campaignId) => ({
         url: `/campaign/${campaignId}`,
@@ -142,4 +150,5 @@ export const {
   useBulkImportCustomersMutation,
   useDeleteCustomerMutation,
   useResendRequestCustomerMutation,
+  useGenerateAiMessageMutation,
 } = customerApi;

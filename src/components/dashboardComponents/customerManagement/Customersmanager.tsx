@@ -834,6 +834,7 @@ import {
   RefreshCw,
   Search,
   Send,
+  Sparkles,
   Star,
   Trash2,
   Upload,
@@ -851,6 +852,7 @@ import {
   useGetAllCustomerQuery,
   useGetCustomerStatsQuery,
   useResendRequestCustomerMutation,
+  useGenerateAiMessageMutation,
 } from "@/redux/api/userDashboard/customer/customerApi";
 // ⚠️ Adjust this import path to wherever your profile API lives
 import { useGetMeProfileQuery } from "@/redux/api/getMe/getMeApi";
@@ -1342,7 +1344,27 @@ function AddCustomerModal({
   const [addEmail, { isLoading: emailLoading }] = useAddCustomerEmailMutation();
   const [bulkImport, { isLoading: bulkLoading }] =
     useBulkImportCustomersMutation();
+  const [generateAiMsg, { isLoading: isGeneratingAi }] =
+    useGenerateAiMessageMutation();
   const busy = smsLoading || emailLoading || bulkLoading;
+
+  const handleGenerateAiMessage = async () => {
+    try {
+      const channel = mode === "BULK" ? bulkChannel : mode;
+      const res = await generateAiMsg({
+        businessId,
+        customerName: name.trim() || undefined,
+        channel,
+      }).unwrap();
+
+      const aiText = res?.data?.message || res?.message;
+      if (aiText) {
+        setMessage(aiText);
+      }
+    } catch (err: any) {
+      console.warn("AI generation error:", err);
+    }
+  };
 
   const parsed = useMemo(
     () => parseBulk(bulkText, bulkChannel),
@@ -1595,11 +1617,21 @@ function AddCustomerModal({
           </>
         )}
 
-        <Field
-          label="Message"
-          htmlFor="c-msg"
-          hint={`${message.length}/320 characters`}
-        >
+        <div>
+          <div className="mb-1.5 flex items-center justify-between">
+            <label htmlFor="c-msg" className="text-sm font-medium text-slate-700 dark:text-slate-200">
+              Message
+            </label>
+            <button
+              type="button"
+              onClick={handleGenerateAiMessage}
+              disabled={isGeneratingAi}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 dark:border-indigo-800/60 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:text-blue-300 hover:border-blue-400 transition-all shadow-xs disabled:opacity-60"
+            >
+              <Sparkles className={`h-3.5 w-3.5 text-blue-600 ${isGeneratingAi ? "animate-spin" : ""}`} />
+              <span>{isGeneratingAi ? "Generating AI Message..." : "✨ Write with AI"}</span>
+            </button>
+          </div>
           <textarea
             id="c-msg"
             rows={3}
@@ -1608,7 +1640,10 @@ function AddCustomerModal({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
           />
-        </Field>
+          <p className="mt-1 text-right text-xs text-slate-400">
+            {message.length}/320 characters
+          </p>
+        </div>
 
         {smsLow && (
           <p className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">
