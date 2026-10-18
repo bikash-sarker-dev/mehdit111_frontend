@@ -1383,7 +1383,7 @@ function Skeleton({ className = "" }: { className?: string }) {
   return (
     <span
       aria-hidden="true"
-      className={`block animate-pulse rounded bg-slate-100 motion-reduce:animate-none ${className}`}
+      className={`block animate-pulse rounded bg-slate-200/70 dark:bg-slate-800/70 motion-reduce:animate-none ${className}`}
     />
   );
 }

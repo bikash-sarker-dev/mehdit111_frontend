@@ -509,7 +509,7 @@ export default function PricingSection({
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className="h-[28rem] animate-pulse rounded-2xl border border-slate-200 bg-white motion-reduce:animate-none"
+                className="h-[28rem] animate-pulse rounded-2xl border border-slate-200 bg-white motion-reduce:animate-none dark:border-slate-800 dark:bg-[#0b1727]"
               />
             ))}
           </div>

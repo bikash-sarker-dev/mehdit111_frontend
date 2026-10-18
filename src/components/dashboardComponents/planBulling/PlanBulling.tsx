@@ -1118,12 +1118,12 @@ export default function PlanAndBilling({
         {/* ---------------- Plan section ---------------- */}
         <section>
           <header className="mb-6">
-            <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+            <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
               Plan &amp; Billing
             </h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               You are currently on the{" "}
-              <span className="font-medium text-slate-700">
+              <span className="font-medium text-slate-700 dark:text-slate-200">
                 {subscription?.planName ?? "—"}
               </span>{" "}
               plan
@@ -1152,7 +1152,7 @@ export default function PlanAndBilling({
                     "relative flex flex-col rounded-2xl p-6 transition-shadow",
                     isPopular
                       ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20 sm:scale-[1.02]"
-                      : "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200",
+                      : "bg-white dark:bg-[#0b1727] text-slate-900 dark:text-white shadow-sm ring-1 ring-slate-200 dark:ring-slate-800",
                   ].join(" ")}
                 >
                   {isPopular && (
@@ -1165,7 +1165,7 @@ export default function PlanAndBilling({
                     <span
                       className={[
                         "text-xs font-semibold tracking-wide",
-                        isPopular ? "text-blue-100" : "text-slate-500",
+                        isPopular ? "text-blue-100" : "text-slate-500 dark:text-slate-400",
                       ].join(" ")}
                     >
                       {plan.name.toUpperCase()}
@@ -1176,7 +1176,7 @@ export default function PlanAndBilling({
                           "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
                           isPopular
                             ? "bg-white/15 text-white"
-                            : "bg-blue-50 text-blue-700",
+                            : "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300",
                         ].join(" ")}
                       >
                         <Star className="h-3 w-3" />
@@ -1190,7 +1190,7 @@ export default function PlanAndBilling({
                       ${plan.priceMonthly}
                     </span>
                     <span
-                      className={isPopular ? "text-blue-100" : "text-slate-500"}
+                      className={isPopular ? "text-blue-100" : "text-slate-500 dark:text-slate-400"}
                     >
                       /month
                     </span>
@@ -1199,7 +1199,7 @@ export default function PlanAndBilling({
                   <p
                     className={[
                       "mb-5 text-sm leading-relaxed",
-                      isPopular ? "text-blue-50" : "text-slate-500",
+                      isPopular ? "text-blue-50" : "text-slate-500 dark:text-slate-400",
                     ].join(" ")}
                   >
                     {plan.tagline}
@@ -1214,20 +1214,20 @@ export default function PlanAndBilling({
                         <span
                           className={[
                             "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full",
-                            isPopular ? "bg-white/20" : "bg-blue-100",
+                            isPopular ? "bg-white/20" : "bg-blue-100 dark:bg-blue-950/50",
                           ].join(" ")}
                         >
                           <Check
                             className={[
                               "h-2.5 w-2.5",
-                              isPopular ? "text-white" : "text-blue-600",
+                              isPopular ? "text-white" : "text-blue-600 dark:text-blue-400",
                             ].join(" ")}
                             strokeWidth={3}
                           />
                         </span>
                         <span
                           className={
-                            isPopular ? "text-white" : "text-slate-700"
+                            isPopular ? "text-white" : "text-slate-700 dark:text-slate-200"
                           }
                         >
                           {feature}
@@ -1258,67 +1258,67 @@ export default function PlanAndBilling({
         {/* ---------------- Billing section ---------------- */}
         <section>
           <header className="mb-6">
-            <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+            <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
               Billing
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Your subscription details and usage for the current period.
             </p>
           </header>
 
           {/* Summary cards */}
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="flex items-center gap-4 rounded-2xl bg-white p-5 ring-1 ring-slate-200">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50">
-                <Star className="h-5 w-5 text-blue-600" />
+            <div className="flex items-center gap-4 rounded-2xl bg-white dark:bg-[#0b1727] p-5 ring-1 ring-slate-200 dark:ring-slate-800">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/40">
+                <Star className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </span>
               <div className="min-w-0">
-                <p className="truncate text-base font-semibold text-slate-900">
+                <p className="truncate text-base font-semibold text-slate-900 dark:text-white">
                   {subscription?.planName ?? "—"}
                 </p>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   Current Plan
                   {subscription?.status && (
-                    <span className="ml-1.5 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
+                    <span className="ml-1.5 rounded-full bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[10px] font-medium text-slate-600 dark:text-slate-300">
                       {subscription.status}
                     </span>
                   )}
                 </p>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-400 dark:text-slate-500">
                   {currency(currentPrice, subscription?.currency)} / month
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 rounded-2xl bg-white p-5 ring-1 ring-slate-200">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50">
-                <Calendar className="h-5 w-5 text-indigo-600" />
+            <div className="flex items-center gap-4 rounded-2xl bg-white dark:bg-[#0b1727] p-5 ring-1 ring-slate-200 dark:ring-slate-800">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/40">
+                <Calendar className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
               </span>
               <div className="min-w-0">
-                <p className="truncate text-base font-semibold text-slate-900">
+                <p className="truncate text-base font-semibold text-slate-900 dark:text-white">
                   {fmtDate(subscription?.currentPeriodEnd)}
                 </p>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   {currentPlanKey === "FREE_TRIAL"
                     ? "Trial Ends"
                     : "Renews / Ends"}
                 </p>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-400 dark:text-slate-500">
                   Started {fmtDate(subscription?.currentPeriodStart)}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 rounded-2xl bg-white p-5 ring-1 ring-slate-200">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50">
-                <MessageSquare className="h-5 w-5 text-emerald-600" />
+            <div className="flex items-center gap-4 rounded-2xl bg-white dark:bg-[#0b1727] p-5 ring-1 ring-slate-200 dark:ring-slate-800">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40">
+                <MessageSquare className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-base font-semibold text-slate-900">
+                <p className="truncate text-base font-semibold text-slate-900 dark:text-white">
                   {quotas?.sms?.used ?? 0} / {quotas?.sms?.limit ?? 0}
                 </p>
-                <p className="text-sm text-slate-500">SMS Used</p>
-                <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                <p className="text-sm text-slate-500 dark:text-slate-400">SMS Used</p>
+                <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                   <div
                     className="h-full rounded-full bg-emerald-500"
                     style={{
@@ -1333,15 +1333,15 @@ export default function PlanAndBilling({
           {/* AI reply quota + NFC */}
           {quotas && (
             <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl bg-white p-5 ring-1 ring-slate-200">
-                <p className="text-sm font-semibold text-slate-900">
+              <div className="rounded-2xl bg-white dark:bg-[#0b1727] p-5 ring-1 ring-slate-200 dark:ring-slate-800">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">
                   AI Auto-Replies
                 </p>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                   {quotas.aiReply.used} of {quotas.aiReply.limit} used ·{" "}
                   {quotas.aiReply.remaining} remaining
                 </p>
-                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                   <div
                     className="h-full rounded-full bg-blue-500"
                     style={{
@@ -1350,11 +1350,11 @@ export default function PlanAndBilling({
                   />
                 </div>
               </div>
-              <div className="rounded-2xl bg-white p-5 ring-1 ring-slate-200">
-                <p className="text-sm font-semibold text-slate-900">
+              <div className="rounded-2xl bg-white dark:bg-[#0b1727] p-5 ring-1 ring-slate-200 dark:ring-slate-800">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">
                   NFC Stands Included
                 </p>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                   {quotas.nfcCardsIncluded} smart NFC stand
                   {quotas.nfcCardsIncluded === 1 ? "" : "s"} / QR code
                   {quotas.nfcCardsIncluded === 1 ? "" : "s"}
@@ -1393,11 +1393,11 @@ export default function PlanAndBilling({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search invoices..."
-              className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:max-w-xs"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 py-2 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:max-w-xs"
             />
             <div className="flex items-center justify-between gap-2 sm:justify-end">
               {years.length > 0 && (
-                <div className="flex rounded-lg bg-slate-100 p-1">
+                <div className="flex rounded-lg bg-slate-100 dark:bg-slate-800 p-1">
                   {["All", ...years].map((y) => (
                     <button
                       key={y}
@@ -1407,7 +1407,7 @@ export default function PlanAndBilling({
                         "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                         yearFilter === y
                           ? "bg-blue-600 text-white shadow-sm"
-                          : "text-slate-600 hover:text-slate-900",
+                          : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white",
                       ].join(" ")}
                     >
                       {y}
@@ -1418,7 +1418,7 @@ export default function PlanAndBilling({
               <button
                 type="button"
                 onClick={onExportAll}
-                className="flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                className="flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
               >
                 <Download className="h-4 w-4" />
                 Export All
@@ -1427,11 +1427,11 @@ export default function PlanAndBilling({
           </div>
 
           {/* Table — desktop */}
-          <div className="hidden overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200 md:block">
+          <div className="hidden overflow-hidden rounded-2xl bg-white dark:bg-[#0b1727] ring-1 ring-slate-200 dark:ring-slate-800 md:block">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-slate-100 text-xs font-medium uppercase tracking-wide text-slate-400">
+                  <tr className="border-b border-slate-100 dark:border-slate-800 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-400">
                     <th className="px-5 py-3">Invoice</th>
                     <th className="px-5 py-3">Date</th>
                     <th className="px-5 py-3">Billing Period</th>
@@ -1442,27 +1442,27 @@ export default function PlanAndBilling({
                     <th className="px-5 py-3 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {filteredInvoices.map((inv) => (
                     <tr
                       key={inv.id + inv.date}
-                      className="transition-colors hover:bg-slate-50"
+                      className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40"
                     >
-                      <td className="whitespace-nowrap px-5 py-3.5 font-medium text-blue-600">
+                      <td className="whitespace-nowrap px-5 py-3.5 font-medium text-blue-600 dark:text-blue-400">
                         {inv.id}
                       </td>
-                      <td className="whitespace-nowrap px-5 py-3.5 text-slate-500">
+                      <td className="whitespace-nowrap px-5 py-3.5 text-slate-500 dark:text-slate-400">
                         {inv.date}
                       </td>
-                      <td className="whitespace-nowrap px-5 py-3.5 text-slate-500">
+                      <td className="whitespace-nowrap px-5 py-3.5 text-slate-500 dark:text-slate-400">
                         {inv.billingPeriod}
                       </td>
                       <td className="whitespace-nowrap px-5 py-3.5">
-                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+                        <span className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-950/40 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300">
                           {inv.plan}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-5 py-3.5 font-medium text-slate-900">
+                      <td className="whitespace-nowrap px-5 py-3.5 font-medium text-slate-900 dark:text-white">
                         {currency(inv.amount)}
                       </td>
                       <td className="whitespace-nowrap px-5 py-3.5">
@@ -1475,14 +1475,14 @@ export default function PlanAndBilling({
                           {inv.status}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-5 py-3.5 text-slate-500">
+                      <td className="whitespace-nowrap px-5 py-3.5 text-slate-500 dark:text-slate-400">
                         {inv.paymentMethod}
                       </td>
                       <td className="whitespace-nowrap px-5 py-3.5 text-right">
                         <button
                           type="button"
                           onClick={() => onDownloadInvoice?.(inv.id)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
                         >
                           <Download className="h-3.5 w-3.5" />
                           PDF
@@ -1495,7 +1495,7 @@ export default function PlanAndBilling({
                     <tr>
                       <td
                         colSpan={8}
-                        className="px-5 py-10 text-center text-sm text-slate-400"
+                        className="px-5 py-10 text-center text-sm text-slate-400 dark:text-slate-500"
                       >
                         {invoices.length === 0
                           ? "No invoices yet."
@@ -1507,11 +1507,11 @@ export default function PlanAndBilling({
               </table>
             </div>
 
-            <div className="flex items-center justify-between border-t border-slate-100 px-5 py-3 text-sm text-slate-500">
+            <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 px-5 py-3 text-sm text-slate-500 dark:text-slate-400">
               <span>{filteredInvoices.length} invoices shown</span>
               <span>
                 Total paid{" "}
-                <span className="font-semibold text-slate-900">
+                <span className="font-semibold text-slate-900 dark:text-white">
                   {currency(totalPaid)}
                 </span>
               </span>

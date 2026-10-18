@@ -1042,9 +1042,9 @@ function Icon({
 /* ------------------------------------------------------------------ */
 
 const inputBase =
-  "h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-base text-slate-700 " +
+  "h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 text-base text-slate-700 dark:text-slate-100 " +
   "placeholder:text-slate-400 outline-none transition sm:text-sm " +
-  "focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-50";
+  "focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/40 disabled:cursor-not-allowed disabled:bg-slate-50 dark:disabled:bg-slate-800";
 
 interface FieldProps {
   label: string;
@@ -1074,7 +1074,7 @@ function Field({
   const id = useId();
   return (
     <div>
-      <label htmlFor={id} className="mb-2 block text-sm text-slate-600">
+      <label htmlFor={id} className="mb-2 block text-sm font-medium text-slate-600 dark:text-slate-300">
         {label}
       </label>
       <input
@@ -1087,7 +1087,7 @@ function Field({
         inputMode={inputMode}
         disabled={disabled}
         onChange={(e) => onChange?.(e.target.value)}
-        className={`${inputBase} ${muted ? "text-slate-500" : ""}`}
+        className={`${inputBase} ${muted ? "text-slate-500 dark:text-slate-400" : ""}`}
       />
     </div>
   );
@@ -1153,10 +1153,10 @@ function SaveButton({
 function CardHeading({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <header className="mb-6">
-      <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+      <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
         {title}
       </h2>
-      <p className="mt-2 text-xs text-slate-500">{subtitle}</p>
+      <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{subtitle}</p>
     </header>
   );
 }
@@ -1170,8 +1170,8 @@ function PanelSkeleton({ rows = 5 }: { rows?: number }) {
     >
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i}>
-          <div className="mb-2 h-3 w-24 rounded bg-slate-200" />
-          <div className="h-11 w-full rounded-xl bg-slate-100" />
+          <div className="mb-2 h-3 w-24 rounded bg-slate-200 dark:bg-slate-700" />
+          <div className="h-11 w-full rounded-xl bg-slate-100 dark:bg-slate-800/70" />
         </div>
       ))}
     </div>
@@ -1514,15 +1514,15 @@ export default function UserSettingsPage() {
   /* ---------------------------------------------------------------- */
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-6 font-sans text-slate-900 antialiased sm:px-6 sm:py-8 lg:px-8">
+    <div className="min-h-screen bg-transparent px-4 py-6 font-sans text-slate-900 dark:text-slate-100 antialiased sm:px-6 sm:py-8 lg:px-8">
       <Toast toast={toast} onClose={() => setToast(null)} />
 
       <div className="mx-auto w-full max-w-7xl">
         <header className="mb-5 sm:mb-6">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-[26px]">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-[26px]">
             Settings
           </h1>
-          <p className="mt-1.5 text-xs text-slate-500 sm:text-[13px]">
+          <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 sm:text-[13px]">
             Configure your platform settings
           </p>
         </header>
@@ -1533,7 +1533,7 @@ export default function UserSettingsPage() {
             role="tablist"
             aria-label="Settings sections"
             aria-orientation="vertical"
-            className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:sticky md:top-6 md:mx-0 md:block md:gap-0 md:overflow-hidden md:rounded-xl md:border md:border-slate-200 md:bg-white md:p-0 [&::-webkit-scrollbar]:hidden"
+            className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:sticky md:top-6 md:mx-0 md:block md:gap-0 md:overflow-hidden md:rounded-xl md:border md:border-slate-200 dark:md:border-slate-800 md:bg-white dark:md:bg-[#0b1727] md:p-0 [&::-webkit-scrollbar]:hidden"
           >
             {TABS.map((t) => {
               const active = tab === t.id;
@@ -1546,10 +1546,10 @@ export default function UserSettingsPage() {
                   aria-selected={active}
                   aria-controls={`panel-${t.id}`}
                   onClick={() => setTab(t.id)}
-                  className={`flex shrink-0 items-center gap-3 whitespace-nowrap rounded-full border px-4 py-2.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-400 md:w-full md:rounded-none md:border-0 md:border-b md:border-slate-100 md:py-3 md:last:border-b-0 ${
+                  className={`flex shrink-0 items-center gap-3 whitespace-nowrap rounded-full border px-4 py-2.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-400 md:w-full md:rounded-none md:border-0 md:border-b md:border-slate-100 dark:md:border-slate-800 md:py-3 md:last:border-b-0 ${
                     active
-                      ? "border-blue-100 bg-blue-50 font-medium text-blue-600"
-                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      ? "border-blue-100 dark:border-blue-900/40 bg-blue-50 dark:bg-blue-950/40 font-medium text-blue-600 dark:text-blue-400"
+                      : "border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1727] text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   <Icon name={t.icon} className="h-4 w-4 shrink-0" />
@@ -1567,7 +1567,7 @@ export default function UserSettingsPage() {
                 role="tabpanel"
                 id="panel-general"
                 aria-labelledby="tab-general"
-                className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 md:p-7"
+                className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1727] p-5 sm:p-6 md:p-7"
               >
                 <CardHeading
                   title="General Settings"
@@ -1611,7 +1611,7 @@ export default function UserSettingsPage() {
                 role="tabpanel"
                 id="panel-company"
                 aria-labelledby="tab-company"
-                className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 md:p-7"
+                className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1727] p-5 sm:p-6 md:p-7"
               >
                 <CardHeading
                   title="Company & Brand"
@@ -1631,7 +1631,7 @@ export default function UserSettingsPage() {
                       />
 
                       <div>
-                        <span className="mb-2 block text-sm text-slate-600">
+                        <span className="mb-2 block text-sm font-medium text-slate-600 dark:text-slate-300">
                           Logo
                         </span>
                         <input
@@ -1646,7 +1646,7 @@ export default function UserSettingsPage() {
                         <button
                           type="button"
                           onClick={() => fileRef.current?.click()}
-                          className="flex min-h-[104px] w-full flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-slate-200 bg-white px-4 py-6 text-center transition hover:border-blue-300 hover:bg-blue-50/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100"
+                          className="flex min-h-[104px] w-full flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/40 px-4 py-6 text-center transition hover:border-blue-300 dark:hover:border-blue-500 hover:bg-blue-50/40 dark:hover:bg-blue-950/20 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100"
                         >
                           {currentLogo ? (
                             <>
@@ -1656,7 +1656,7 @@ export default function UserSettingsPage() {
                                 alt="Company logo"
                                 className="mb-1 h-14 max-w-[70%] object-contain"
                               />
-                              <span className="max-w-full truncate text-sm text-slate-500">
+                              <span className="max-w-full truncate text-sm text-slate-500 dark:text-slate-400">
                                 {logoFile
                                   ? `${logoFile.name} · Click to replace`
                                   : "Click to replace logo"}
@@ -1664,17 +1664,17 @@ export default function UserSettingsPage() {
                             </>
                           ) : (
                             <>
-                              <span className="text-sm text-slate-400">
+                              <span className="text-sm text-slate-400 dark:text-slate-400">
                                 Click to upload logo
                               </span>
-                              <span className="text-xs text-slate-400">
+                              <span className="text-xs text-slate-400 dark:text-slate-500">
                                 PNG or JPG · Max 5MB
                               </span>
                             </>
                           )}
                         </button>
                         {logoError && (
-                          <p role="alert" className="mt-2 text-xs text-red-600">
+                          <p role="alert" className="mt-2 text-xs text-red-600 dark:text-red-400">
                             {logoError}
                           </p>
                         )}
@@ -1698,7 +1698,7 @@ export default function UserSettingsPage() {
                 role="tabpanel"
                 id="panel-security"
                 aria-labelledby="tab-security"
-                className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 md:p-7"
+                className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1727] p-5 sm:p-6 md:p-7"
               >
                 <CardHeading
                   title="Security Settings"
@@ -1724,7 +1724,7 @@ export default function UserSettingsPage() {
                   </>
                 )}
 
-                <h3 className="mb-4 mt-8 text-base font-semibold text-slate-900">
+                <h3 className="mb-4 mt-8 text-base font-semibold text-slate-900 dark:text-white">
                   Password Changes
                 </h3>
                 <div className="space-y-4">

@@ -1149,12 +1149,12 @@ function PanelSkeleton() {
       aria-busy="true"
       aria-label="Loading"
     >
-      <div className="h-8 w-56 rounded-lg bg-slate-100" />
-      <div className="h-4 w-64 rounded bg-slate-100" />
+      <div className="h-8 w-56 rounded-lg bg-slate-100 dark:bg-slate-800" />
+      <div className="h-4 w-64 rounded bg-slate-100 dark:bg-slate-800" />
       <div className="mt-6 space-y-5">
-        <div className="h-11 w-full rounded-xl bg-slate-100" />
-        <div className="h-11 w-full rounded-xl bg-slate-100" />
-        <div className="ml-auto h-11 w-36 rounded-xl bg-slate-100" />
+        <div className="h-11 w-full rounded-xl bg-slate-100 dark:bg-slate-800/70" />
+        <div className="h-11 w-full rounded-xl bg-slate-100 dark:bg-slate-800/70" />
+        <div className="ml-auto h-11 w-36 rounded-xl bg-slate-100 dark:bg-slate-800/70" />
       </div>
     </div>
   );
