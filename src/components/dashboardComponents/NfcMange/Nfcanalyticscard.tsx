@@ -246,9 +246,9 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-// ⚠️ Adjust these import paths to match your project
 import { useGetMeProfileQuery } from "@/redux/api/getMe/getMeApi";
 import { useGetNfcAnalyticsQuery } from "@/redux/api/userDashboard/reviewGap/reviewGapAPI";
+import NfcStandsList from "./NfcStandsList";
 
 /* ----------------------------- Types ----------------------------- */
 
@@ -570,6 +570,12 @@ export default function NFCAnalyticsCard() {
           )}
         </div>
       </div>
+
+      {/* Physical NFC Stands & QR Codes Generator / Manager */}
+      <NfcStandsList
+        businessId={businessId}
+        businessName={profileData?.businessName ?? profileData?.businesses?.[0]?.name}
+      />
     </div>
   );
 }
