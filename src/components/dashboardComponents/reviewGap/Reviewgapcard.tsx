@@ -1098,7 +1098,11 @@ export default function ReviewGapCard({
                   ? `${fmtRating(m.your_rating)} ★`
                   : "No rating"
               }
-              compText={`${fmtRating(m.competitor_avg_rating)} ★`}
+              compText={
+                typeof m.competitor_avg_rating === "number" && m.competitor_avg_rating > 0
+                  ? `${fmtRating(m.competitor_avg_rating)} ★`
+                  : "No rating"
+              }
               you={m.your_rating}
               comp={m.competitor_avg_rating}
               yourLabel={yourLabel}
