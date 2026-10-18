@@ -372,7 +372,7 @@ export default function HelpSupport() {
                     className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 outline-none transition-colors focus:border-blue-500 focus:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400"
                   >
                     <option value="Technical Support">Technical Support (support@)</option>
-                    <option value="Customer Service">Customer Service (Mehdi@)</option>
+                    <option value="Customer Service">Customer Service (mehdi@)</option>
                     <option value="NFC Card Hardware">NFC Card & Hardware Inquiries</option>
                     <option value="Billing & Plans">Billing & Plan Management</option>
                   </select>
