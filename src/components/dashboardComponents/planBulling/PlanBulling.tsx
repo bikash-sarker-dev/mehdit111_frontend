@@ -824,7 +824,24 @@ const clearPending = () => {
   } catch {}
 };
 
+const extractPlans = (res: any): ApiPlan[] => {
+  const candidates = [
+    res,
+    res?.data,
+    res?.data?.plans,
+    res?.data?.data,
+    res?.data?.items,
+    res?.plans,
+    res?.items,
+  ];
+  for (const c of candidates) {
+    if (Array.isArray(c)) return c as ApiPlan[];
+  }
+  return [];
+};
+
 const cleanUrl = () => {
+  if (typeof window === "undefined") return;
   const url = new URL(window.location.href);
   ["payment", "success", "canceled", "cancelled", "session_id", "plan"].forEach(
     (k) => url.searchParams.delete(k),
@@ -878,16 +895,16 @@ export default function PlanAndBilling({
     refetch: refetchSub,
   } = useGetMyCurrentSubscriptionQuery(businessId, { skip: !businessId });
 
-  const allPlans: ApiPlan[] = plansRes?.data ?? [];
+  const allPlans: ApiPlan[] = useMemo(() => extractPlans(plansRes), [plansRes]);
   const paidPlans = useMemo(
-    () => allPlans.filter((p) => p.plan !== "FREE_TRIAL"),
+    () => allPlans.filter((p) => p && p.plan !== "FREE_TRIAL"),
     [allPlans],
   );
 
   const subscription = subRes?.data?.subscription;
   const quotas = subRes?.data?.quotas;
   const currentPlanKey: string = subscription?.plan ?? "";
-  const currentPlanData = allPlans.find((p) => p.plan === currentPlanKey);
+  const currentPlanData = allPlans.find((p) => p?.plan === currentPlanKey);
   const currentPrice: number =
     subscription?.priceMonthly ?? currentPlanData?.priceMonthly ?? 0;
   const isActive = subscription?.status === "ACTIVE";
@@ -1206,7 +1223,7 @@ export default function PlanAndBilling({
                   </p>
 
                   <ul className="mb-6 flex flex-1 flex-col gap-3">
-                    {plan.features.map((feature) => (
+                    {(plan.features ?? []).map((feature) => (
                       <li
                         key={feature}
                         className="flex items-start gap-2 text-sm"
@@ -1653,26 +1670,26 @@ export default function PlanAndBilling({
               <div className="mb-4 grid grid-cols-3 gap-2 text-center">
                 <div className="rounded-xl bg-blue-50 px-2 py-3">
                   <p className="text-base font-bold text-blue-700">
-                    {selectedPlan.smsLimit.toLocaleString()}
+                    {(selectedPlan.smsLimit ?? 0).toLocaleString()}
                   </p>
                   <p className="text-[11px] text-blue-600/80">SMS invites</p>
                 </div>
                 <div className="rounded-xl bg-indigo-50 px-2 py-3">
                   <p className="text-base font-bold text-indigo-700">
-                    {selectedPlan.aiReplyLimit.toLocaleString()}
+                    {(selectedPlan.aiReplyLimit ?? 0).toLocaleString()}
                   </p>
                   <p className="text-[11px] text-indigo-600/80">AI replies</p>
                 </div>
                 <div className="rounded-xl bg-emerald-50 px-2 py-3">
                   <p className="text-base font-bold text-emerald-700">
-                    {selectedPlan.nfcCardsIncluded}
+                    {selectedPlan.nfcCardsIncluded ?? 0}
                   </p>
                   <p className="text-[11px] text-emerald-600/80">NFC stands</p>
                 </div>
               </div>
 
               <ul className="mb-5 space-y-2">
-                {selectedPlan.features.slice(0, 4).map((f) => (
+                {(selectedPlan.features ?? []).slice(0, 4).map((f) => (
                   <li
                     key={f}
                     className="flex items-start gap-2 text-sm text-slate-600"
