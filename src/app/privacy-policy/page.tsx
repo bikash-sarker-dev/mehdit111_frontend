@@ -12,10 +12,22 @@ export const metadata: Metadata = {
 
 const COMPANY = {
   legalName: "Nexora Automation Inc.",
-  tradeName: "Grow More Reviews (Review Growth AI)",
-  address: "250 Brookside Terrace NW, Edmonton, Alberta T6H 4J6, Canada",
-  phone: "+1 (416) 917-0776",
-  email: "mehdi@growmorereviews.com",
+  tradeName: "Grow More Reviews",
+  brandStatement:
+    "Grow More Reviews is a product and operating brand of Nexora Automation Inc., an Alberta, Canada corporation.",
+  email: "Mehdi@growmorereviews.com",
+  customerEmail: "Mehdi@growmorereviews.com",
+  supportEmail: "support@growmorereviews.com",
+  edmontonOffice: {
+    name: "Edmonton Office (HQ)",
+    address: "First Edmonton Place, 10665 Jasper Ave, 14th Floor, Edmonton, AB T5J 3S9",
+    phones: ["(780) 851-9353", "416 917 0776"],
+  },
+  torontoOffice: {
+    name: "Toronto Office",
+    address: "4711 Yonge Street 10th Floor, Toronto, ON, M2N 6K8, CAN",
+    phones: ["416 917 0776"],
+  },
   effectiveDate: "October 18, 2026",
 };
 
@@ -349,44 +361,63 @@ export default function PrivacyPolicyPage() {
                 </h2>
               </div>
               <p className="mt-3 text-sm text-slate-600">
-                If you have questions, feedback, or requests regarding this Privacy Policy, please reach out to our privacy officer:
+                {COMPANY.brandStatement} If you have questions, feedback, or requests regarding this Privacy Policy, please reach out to our privacy officer:
               </p>
 
-              <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-                    <Mail className="h-4 w-4 text-blue-600" />
-                    EMAIL
-                  </div>
-                  <a
-                    href={`mailto:${COMPANY.email}`}
-                    className="mt-2 block text-sm font-medium text-slate-900 hover:text-blue-600"
-                  >
-                    {COMPANY.email}
-                  </a>
-                </div>
-
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-                    <Phone className="h-4 w-4 text-blue-600" />
-                    PHONE
-                  </div>
-                  <a
-                    href={`tel:${COMPANY.phone.replace(/[^0-9+]/g, "")}`}
-                    className="mt-2 block text-sm font-medium text-slate-900 hover:text-blue-600"
-                  >
-                    {COMPANY.phone}
-                  </a>
-                </div>
-
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-                    <MapPin className="h-4 w-4 text-blue-600" />
-                    OFFICE ADDRESS
+              <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+                {/* Edmonton Office */}
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                    <span className="text-xs font-bold text-slate-900 uppercase">
+                      Edmonton Office (HQ)
+                    </span>
+                    <span className="text-[11px] text-slate-500">Alberta</span>
                   </div>
                   <p className="mt-2 text-xs leading-relaxed text-slate-700">
-                    {COMPANY.address}
+                    {COMPANY.edmontonOffice.address}
                   </p>
+                  <div className="mt-3 space-y-1 text-xs text-slate-600">
+                    <p>
+                      <strong>Tel:</strong>{" "}
+                      <a href="tel:+17808519353" className="text-blue-600 hover:underline">(780) 851-9353</a>{" "}
+                      and{" "}
+                      <a href="tel:+14169170776" className="text-blue-600 hover:underline">416 917 0776</a>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Toronto Office */}
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                    <span className="text-xs font-bold text-slate-900 uppercase">
+                      Toronto Office
+                    </span>
+                    <span className="text-[11px] text-slate-500">Ontario</span>
+                  </div>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-700">
+                    {COMPANY.torontoOffice.address}
+                  </p>
+                  <div className="mt-3 space-y-1 text-xs text-slate-600">
+                    <p>
+                      <strong>Tel:</strong>{" "}
+                      <a href="tel:+14169170776" className="text-blue-600 hover:underline">416 917 0776</a>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 flex flex-wrap gap-x-8 gap-y-2 text-xs text-slate-700">
+                <div>
+                  <span className="text-slate-500">Customer Service:</span>{" "}
+                  <a href={`mailto:${COMPANY.customerEmail}`} className="font-semibold text-blue-600 hover:underline">
+                    {COMPANY.customerEmail}
+                  </a>
+                </div>
+                <div>
+                  <span className="text-slate-500">Technical Support:</span>{" "}
+                  <a href={`mailto:${COMPANY.supportEmail}`} className="font-semibold text-blue-600 hover:underline">
+                    {COMPANY.supportEmail}
+                  </a>
                 </div>
               </div>
             </section>
