@@ -3,7 +3,9 @@ import type { Metadata } from "next";
 import HelpSupport from "@/components/dashboardComponents/help/HelpSupport";
 
 export const metadata: Metadata = {
-  title: "Help & Support | Grow More Reviews",
+  title: {
+    absolute: "GrowMoreReviews",
+  },
   description: "Get technical support, customer assistance, or find office details.",
 };
 
