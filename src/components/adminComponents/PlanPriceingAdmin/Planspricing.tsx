@@ -710,7 +710,7 @@ function PlansSkeleton() {
       {Array.from({ length: 4 }).map((_, i) => (
         <div
           key={i}
-          className="h-[540px] animate-pulse rounded-2xl border border-slate-200 bg-slate-50"
+          className="h-[540px] animate-pulse rounded-2xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-[#0b1727]"
         />
       ))}
     </div>

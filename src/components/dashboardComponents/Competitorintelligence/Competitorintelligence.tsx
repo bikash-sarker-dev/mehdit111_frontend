@@ -1744,15 +1744,15 @@ function getPageItems(current: number, total: number) {
 }
 
 const TONE_CLASSES: Record<Tone, string> = {
-  positive: "bg-emerald-50 text-emerald-600",
-  negative: "bg-red-50 text-red-500",
-  neutral: "bg-slate-100 text-slate-500",
+  positive: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400",
+  negative: "bg-red-50 text-red-500 dark:bg-red-950/40 dark:text-red-400",
+  neutral: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
 };
 
 const TONE_TEXT: Record<Tone, string> = {
-  positive: "text-emerald-600",
-  negative: "text-red-500",
-  neutral: "text-slate-900",
+  positive: "text-emerald-600 dark:text-emerald-400",
+  negative: "text-red-500 dark:text-red-400",
+  neutral: "text-slate-900 dark:text-white",
 };
 
 /* ------------------------------ Icons ------------------------------ */
@@ -1917,7 +1917,7 @@ function Skeleton({ className = "" }: { className?: string }) {
   return (
     <div
       className={cx(
-        "animate-pulse rounded-lg bg-slate-100 motion-reduce:animate-none",
+        "animate-pulse rounded-lg bg-slate-200/70 dark:bg-slate-800/70 motion-reduce:animate-none",
         className,
       )}
     />
@@ -1949,9 +1949,9 @@ function Avatar({
 /** Shows "—" for a missing rating or a 0 rating (no reviews yet). */
 function RatingPill({ rating }: { rating?: number }) {
   if (typeof rating !== "number" || rating <= 0)
-    return <span className="text-slate-400">—</span>;
+    return <span className="text-slate-400 dark:text-slate-500">—</span>;
   return (
-    <span className="inline-flex items-center gap-1 text-sm font-medium text-slate-800">
+    <span className="inline-flex items-center gap-1 text-sm font-medium text-slate-800 dark:text-slate-200">
       <StarIcon className="h-3.5 w-3.5 text-amber-400" />
       {rating.toFixed(1)}
     </span>
@@ -1961,14 +1961,14 @@ function RatingPill({ rating }: { rating?: number }) {
 /** Colored "+30" / "−4" style value (green when positive, red when negative). */
 function Delta({ value }: { value: string }) {
   const n = parseNumeric(value);
-  if (!value) return <span className="text-slate-300">—</span>;
+  if (!value) return <span className="text-slate-300 dark:text-slate-600">—</span>;
   return (
     <span
       className={cx(
         "inline-flex items-center gap-1 text-sm font-medium",
-        n > 0 && "text-emerald-600",
-        n < 0 && "text-red-500",
-        n === 0 && "text-slate-500",
+        n > 0 && "text-emerald-600 dark:text-emerald-400",
+        n < 0 && "text-red-500 dark:text-red-400",
+        n === 0 && "text-slate-500 dark:text-slate-400",
       )}
     >
       {n > 0 && <ArrowUpIcon className="h-3.5 w-3.5" />}
@@ -1985,7 +1985,7 @@ function PositionBadge({
   position: string;
   isYou?: boolean;
 }) {
-  if (!position) return <span className="text-slate-400">—</span>;
+  if (!position) return <span className="text-slate-400 dark:text-slate-500">—</span>;
   const n = parseNumeric(position);
   const podium = n > 0 && n <= 3;
   return (
@@ -1995,8 +1995,8 @@ function PositionBadge({
         isYou
           ? "bg-blue-600 text-white"
           : podium
-            ? "bg-amber-100 text-amber-700"
-            : "bg-slate-100 text-slate-500",
+            ? "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400"
+            : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400",
       )}
     >
       {position}
@@ -2014,9 +2014,9 @@ function InlineError({
   return (
     <div
       role="alert"
-      className="flex flex-col gap-3 rounded-xl border border-red-100 bg-red-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+      className="flex flex-col gap-3 rounded-xl border border-red-100 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 p-4 sm:flex-row sm:items-center sm:justify-between"
     >
-      <div className="flex items-start gap-2.5 text-sm text-red-700">
+      <div className="flex items-start gap-2.5 text-sm text-red-700 dark:text-red-300">
         <AlertIcon className="mt-0.5 h-4 w-4 flex-shrink-0" />
         <span>{message}</span>
       </div>
@@ -2024,7 +2024,7 @@ function InlineError({
         <button
           type="button"
           onClick={onRetry}
-          className="self-start rounded-lg border border-red-200 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition hover:bg-red-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 sm:self-auto"
+          className="self-start rounded-lg border border-red-200 dark:border-red-800 bg-white dark:bg-slate-900 px-3 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 transition hover:bg-red-100 dark:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 sm:self-auto"
         >
           Try again
         </button>
@@ -2036,9 +2036,9 @@ function InlineError({
 function EmptyState({ title, hint }: { title: string; hint?: string }) {
   return (
     <div className="px-6 py-12 text-center">
-      <p className="text-sm font-medium text-slate-800">{title}</p>
+      <p className="text-sm font-medium text-slate-800 dark:text-white">{title}</p>
       {hint && (
-        <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500">{hint}</p>
+        <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500 dark:text-slate-400">{hint}</p>
       )}
     </div>
   );
@@ -2054,8 +2054,8 @@ function StatTile({
   tone?: Tone;
 }) {
   return (
-    <div className="rounded-xl bg-slate-50 px-4 py-3">
-      <p className="text-xs text-slate-500">{label}</p>
+    <div className="rounded-xl bg-slate-50 dark:bg-slate-900/60 p-4">
+      <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
       <p className={cx("mt-1 text-lg font-semibold", TONE_TEXT[tone])}>
         {value}
       </p>
@@ -2390,15 +2390,15 @@ export default function CompetitorIntelligence({
       {/* ---------------------------- Header ---------------------------- */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white sm:text-2xl">
             {title}
           </h2>
-          <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
         </div>
 
         <div className="flex items-center gap-3">
           {intel && (
-            <span className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm">
+            <span className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1727] px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm">
               {competitorCount}{" "}
               {competitorCount === 1 ? "competitor" : "competitors"} tracked
             </span>
@@ -2408,7 +2408,7 @@ export default function CompetitorIntelligence({
             onClick={handleRefresh}
             disabled={refreshing || skip}
             aria-label="Refresh data"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1727] text-slate-600 dark:text-slate-300 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50"
           >
             <RefreshIcon
               className={cx(
@@ -2436,7 +2436,7 @@ export default function CompetitorIntelligence({
               ? Array.from({ length: 4 }).map((_, i) => (
                   <div
                     key={i}
-                    className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+                    className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1727] p-5 shadow-sm"
                   >
                     <div className="flex items-start justify-between">
                       <Skeleton className="h-10 w-10 rounded-xl" />
@@ -2449,7 +2449,7 @@ export default function CompetitorIntelligence({
               : metrics.map((metric) => (
                   <div
                     key={metric.id}
-                    className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+                    className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1727] p-5 shadow-sm"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-600">
@@ -2470,10 +2470,10 @@ export default function CompetitorIntelligence({
                         {metric.badgeText}
                       </span>
                     </div>
-                    <p className="mt-4 text-2xl font-semibold text-slate-900 sm:text-[26px]">
+                    <p className="mt-4 text-2xl font-semibold text-slate-900 dark:text-white sm:text-[26px]">
                       {metric.value}
                     </p>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                       {metric.label}
                     </p>
                   </div>
@@ -2489,12 +2489,12 @@ export default function CompetitorIntelligence({
       </div>
 
       {/* ------------------------------ Search ------------------------------ */}
-      <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1727] shadow-sm">
         <div className="px-5 py-4 sm:px-6">
-          <h3 className="text-base font-semibold text-slate-900">
+          <h3 className="text-base font-semibold text-slate-900 dark:text-white">
             Find local competitors
           </h3>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Search Google for businesses near you. Add the business type and
             city for the best results.
           </p>
@@ -2514,7 +2514,7 @@ export default function CompetitorIntelligence({
               }}
               placeholder="e.g. Coffee Shop Amsterdam"
               autoComplete="off"
-              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-20 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 [&::-webkit-search-cancel-button]:appearance-none"
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-2.5 pl-10 pr-20 text-sm text-slate-800 dark:text-white shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 [&::-webkit-search-cancel-button]:appearance-none"
             />
             <div className="absolute right-2.5 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
               {searchPending && <Spinner className="h-4 w-4 text-blue-600" />}
@@ -2523,7 +2523,7 @@ export default function CompetitorIntelligence({
                   type="button"
                   onClick={() => setTerm("")}
                   aria-label="Clear search"
-                  className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
                   <CloseIcon className="h-3.5 w-3.5" />
                 </button>
@@ -2646,13 +2646,13 @@ export default function CompetitorIntelligence({
       </div>
 
       {/* ------------------- Your business vs. competitors ------------------- */}
-      <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+      <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1727] shadow-sm">
+        <div className="flex flex-col gap-3 border-b border-slate-100 dark:border-slate-800 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
           <div className="min-w-0">
-            <h3 className="text-base font-semibold text-slate-900">
+            <h3 className="text-base font-semibold text-slate-900 dark:text-white">
               Your business vs. competitors
             </h3>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               {scope ? `${scope}. ` : ""}
               Green means you&apos;re ahead, red means you&apos;re behind.
             </p>
@@ -2730,27 +2730,27 @@ export default function CompetitorIntelligence({
 
             {/* AI summary */}
             {intel.ai_intelligence_summary && (
-              <div className="mx-5 mt-4 flex gap-3 rounded-xl border border-blue-100 bg-blue-50/70 p-4 sm:mx-6">
+              <div className="mx-5 mt-4 flex gap-3 rounded-xl border border-blue-100 dark:border-blue-900/50 bg-blue-50/70 dark:bg-blue-950/30 p-4 sm:mx-6">
                 <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
                   <SparkIcon className="h-4 w-4" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-blue-900">
+                  <p className="text-sm font-semibold text-blue-900 dark:text-blue-200">
                     AI summary
                   </p>
-                  <p className="mt-1 text-sm leading-relaxed text-blue-900/90">
+                  <p className="mt-1 text-sm leading-relaxed text-blue-900/90 dark:text-blue-300/90">
                     {intel.ai_intelligence_summary}
                   </p>
                 </div>
               </div>
             )}
 
-            <div className="mt-5 border-t border-slate-100">
+            <div className="mt-5 border-t border-slate-100 dark:border-slate-800">
               {/* Desktop / tablet table */}
               <div className="hidden overflow-x-auto md:block">
                 <table className="w-full min-w-[820px] table-auto border-collapse text-left">
                   <thead>
-                    <tr className="border-b border-slate-100">
+                    <tr className="border-b border-slate-100 dark:border-slate-800">
                       {TABLE_COLUMNS.map((col) => {
                         const active = col.sort === sortKey;
                         return (
@@ -2766,15 +2766,15 @@ export default function CompetitorIntelligence({
                                   : "none"
                                 : undefined
                             }
-                            className="whitespace-nowrap px-6 py-3 text-xs font-medium text-slate-400"
+                            className="whitespace-nowrap px-6 py-3 text-xs font-medium text-slate-400 dark:text-slate-400"
                           >
                             {col.sort ? (
                               <button
                                 type="button"
                                 onClick={() => handleSort(col.sort as SortKey)}
                                 className={cx(
-                                  "inline-flex items-center gap-1 rounded transition hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
-                                  active && "text-slate-700",
+                                  "inline-flex items-center gap-1 rounded transition hover:text-slate-700 dark:hover:text-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                                  active && "text-slate-700 dark:text-white font-semibold",
                                 )}
                               >
                                 {col.label}
@@ -2793,15 +2793,15 @@ export default function CompetitorIntelligence({
                       <tr
                         key={row.id}
                         className={cx(
-                          "border-b border-slate-50 last:border-b-0",
-                          row.isYou ? "bg-blue-50/60" : "hover:bg-slate-50",
+                          "border-b border-slate-50 dark:border-slate-800/60 last:border-b-0",
+                          row.isYou ? "bg-blue-50/60 dark:bg-blue-950/30" : "hover:bg-slate-50 dark:hover:bg-slate-800/40",
                         )}
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <Avatar name={row.name} isYou={row.isYou} />
                             <div className="flex min-w-0 items-center gap-2">
-                              <span className="text-sm font-medium text-slate-800">
+                              <span className="text-sm font-medium text-slate-800 dark:text-white">
                                 {row.name}
                               </span>
                               {row.isYou && (
@@ -2815,13 +2815,13 @@ export default function CompetitorIntelligence({
                         <td className="whitespace-nowrap px-6 py-4">
                           <RatingPill rating={row.rating} />
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-700">
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-700 dark:text-slate-300">
                           {row.totalReviews.toLocaleString()}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4">
                           <Delta value={row.reviewsGained} />
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-700">
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-700 dark:text-slate-300">
                           {prettyMinus(row.growthRate)}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4">
@@ -2852,10 +2852,10 @@ export default function CompetitorIntelligence({
               </div>
 
               {/* Mobile cards */}
-              <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3 md:hidden">
+              <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 px-4 py-3 md:hidden">
                 <label
                   htmlFor="competitor-sort"
-                  className="text-xs text-slate-500"
+                  className="text-xs text-slate-500 dark:text-slate-400"
                 >
                   Sort by
                 </label>
@@ -2872,10 +2872,10 @@ export default function CompetitorIntelligence({
                       setSortOrder(next === "name" ? "asc" : "desc");
                     }
                   }}
-                  className="rounded-lg border border-slate-200 bg-white py-1 pl-2 pr-6 text-sm text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1 pl-2 pr-6 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
                   {SORT_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
+                    <option key={o.value} value={o.value} className="dark:bg-slate-900 dark:text-white">
                       {o.label}
                     </option>
                   ))}
@@ -2897,23 +2897,23 @@ export default function CompetitorIntelligence({
                       ? "Sorted descending, switch to ascending"
                       : "Sorted ascending, switch to descending"
                   }
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
                   <SortIcon order={sortKey ? sortOrder : null} />
                 </button>
               </div>
 
-              <ul className="divide-y divide-slate-100 md:hidden">
+              <ul className="divide-y divide-slate-100 dark:divide-slate-800 md:hidden">
                 {rows.map((row) => (
                   <li
                     key={row.id}
-                    className={cx("p-4", row.isYou && "bg-blue-50/60")}
+                    className={cx("p-4", row.isYou && "bg-blue-50/60 dark:bg-blue-950/30")}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-3">
                         <Avatar name={row.name} isYou={row.isYou} />
                         <div className="flex min-w-0 items-center gap-2">
-                          <span className="truncate text-sm font-medium text-slate-800">
+                          <span className="truncate text-sm font-medium text-slate-800 dark:text-white">
                             {row.name}
                           </span>
                           {row.isYou && (
@@ -2930,31 +2930,31 @@ export default function CompetitorIntelligence({
                     </div>
 
                     <dl className="mt-3 grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
-                      <div className="rounded-lg bg-slate-50 py-2">
-                        <dt className="text-[11px] text-slate-400">Rating</dt>
+                      <div className="rounded-lg bg-slate-50 dark:bg-slate-900/60 py-2">
+                        <dt className="text-[11px] text-slate-400 dark:text-slate-400">Rating</dt>
                         <dd className="mt-0.5 flex justify-center">
                           <RatingPill rating={row.rating} />
                         </dd>
                       </div>
-                      <div className="rounded-lg bg-slate-50 py-2">
-                        <dt className="text-[11px] text-slate-400">Reviews</dt>
-                        <dd className="mt-0.5 text-sm font-semibold text-slate-800">
+                      <div className="rounded-lg bg-slate-50 dark:bg-slate-900/60 py-2">
+                        <dt className="text-[11px] text-slate-400 dark:text-slate-400">Reviews</dt>
+                        <dd className="mt-0.5 text-sm font-semibold text-slate-800 dark:text-white">
                           {row.totalReviews.toLocaleString()}
                         </dd>
                       </div>
-                      <div className="rounded-lg bg-slate-50 py-2">
-                        <dt className="text-[11px] text-slate-400">
+                      <div className="rounded-lg bg-slate-50 dark:bg-slate-900/60 py-2">
+                        <dt className="text-[11px] text-slate-400 dark:text-slate-400">
                           Reviews gained
                         </dt>
                         <dd className="mt-0.5 flex justify-center">
                           <Delta value={row.reviewsGained} />
                         </dd>
                       </div>
-                      <div className="rounded-lg bg-slate-50 py-2">
-                        <dt className="text-[11px] text-slate-400">
+                      <div className="rounded-lg bg-slate-50 dark:bg-slate-900/60 py-2">
+                        <dt className="text-[11px] text-slate-400 dark:text-slate-400">
                           Growth rate
                         </dt>
-                        <dd className="mt-0.5 text-sm font-semibold text-slate-800">
+                        <dd className="mt-0.5 text-sm font-semibold text-slate-800 dark:text-white">
                           {prettyMinus(row.growthRate)}
                         </dd>
                       </div>

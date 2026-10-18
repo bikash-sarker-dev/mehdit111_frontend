@@ -246,9 +246,9 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-// ⚠️ Adjust these import paths to match your project
 import { useGetMeProfileQuery } from "@/redux/api/getMe/getMeApi";
 import { useGetNfcAnalyticsQuery } from "@/redux/api/userDashboard/reviewGap/reviewGapAPI";
+import NfcStandsList from "./NfcStandsList";
 
 /* ----------------------------- Types ----------------------------- */
 
@@ -286,6 +286,8 @@ interface NfcStatsData {
     period?: string;
     data?: TapDataPoint[];
   };
+  subscriptionNfcIncluded?: number;
+  allowedCards?: number;
 }
 
 interface StatCardProps {
@@ -301,21 +303,25 @@ interface StatCardProps {
 /** The arrow already shows direction, so drop a leading +/- from the text. */
 const cleanDelta = (s?: string) => (s ? s.replace(/^[+-]\s*/, "") : "");
 
-/** Round the y-axis max up to a "nice" multiple of 20 (min 20). */
-const niceMax = (max: number) => Math.max(20, Math.ceil(max / 20) * 20);
+/** Round the y-axis max up to a "nice" multiple (adaptive for low and high counts). */
+const niceMax = (max: number) => {
+  if (max <= 4) return 4;
+  if (max <= 10) return 10;
+  return Math.max(20, Math.ceil(max / 20) * 20);
+};
 
 /* ---------------------------- Sub UI ---------------------------- */
 
 function StatCard({ icon, value, label, delta, trend = "up" }: StatCardProps) {
   const style =
     trend === "down"
-      ? { box: "bg-rose-50 text-rose-600", Icon: ArrowDown }
+      ? { box: "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400", Icon: ArrowDown }
       : trend === "neutral"
-        ? { box: "bg-gray-100 text-gray-500", Icon: Minus }
-        : { box: "bg-emerald-50 text-emerald-600", Icon: ArrowUp };
+        ? { box: "bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400", Icon: Minus }
+        : { box: "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400", Icon: ArrowUp };
 
   return (
-    <div className="flex-1 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+    <div className="flex-1 rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-[#0b1727] p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white">
           {icon}
@@ -329,10 +335,10 @@ function StatCard({ icon, value, label, delta, trend = "up" }: StatCardProps) {
           </span>
         ) : null}
       </div>
-      <div className="mt-4 text-3xl font-semibold tracking-tight text-gray-900">
+      <div className="mt-4 text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
         {value}
       </div>
-      <div className="mt-1 text-sm text-gray-500">{label}</div>
+      <div className="mt-1 text-sm text-gray-500 dark:text-slate-400">{label}</div>
     </div>
   );
 }
@@ -347,8 +353,8 @@ function ChartTooltip({
   if (!active || !payload || !payload.length) return null;
   const point = payload[0];
   return (
-    <div className="rounded-lg border border-gray-100 bg-white px-3 py-2 text-xs shadow-lg">
-      <div className="font-medium text-gray-900">{point.value} taps</div>
+    <div className="rounded-lg border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs shadow-lg">
+      <div className="font-medium text-gray-900 dark:text-white">{point.value} taps</div>
     </div>
   );
 }
@@ -357,15 +363,15 @@ function CardSkeleton() {
   return (
     <div className="mx-auto w-full animate-pulse">
       <div className="mb-5">
-        <div className="h-7 w-24 rounded bg-gray-200" />
-        <div className="mt-2 h-4 w-80 max-w-full rounded bg-gray-100" />
+        <div className="h-7 w-24 rounded bg-gray-200 dark:bg-slate-700" />
+        <div className="mt-2 h-4 w-80 max-w-full rounded bg-gray-100 dark:bg-slate-800" />
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-36 rounded-2xl bg-gray-100" />
+          <div key={i} className="h-36 rounded-2xl bg-gray-100 dark:bg-slate-800/80 dark:border dark:border-slate-800" />
         ))}
       </div>
-      <div className="mt-4 h-80 rounded-2xl border border-gray-100 bg-white" />
+      <div className="mt-4 h-80 rounded-2xl border border-gray-100 bg-white dark:border-slate-800 dark:bg-[#0b1727]" />
     </div>
   );
 }
@@ -452,8 +458,8 @@ export default function NFCAnalyticsCard() {
     <div className={`mx-auto w-full ${isFetching ? "opacity-80" : ""}`}>
       {/* Header */}
       <div className="mb-5">
-        <h1 className="text-2xl font-semibold text-gray-900">NFC</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">NFC</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
           Make it easy for customers to start the review experience with one
           tap.
         </p>
@@ -485,20 +491,20 @@ export default function NFCAnalyticsCard() {
       </div>
 
       {/* Chart card */}
-      <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
+      <div className="mt-4 rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-[#0b1727] p-5 shadow-sm sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="text-base font-semibold text-gray-900">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white">
               {stats.chart?.title ?? "NFC Tap Activity"}
             </h2>
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-xs text-gray-400 dark:text-slate-400">
               {stats.chart?.subtitle ??
                 "Taps recorded across all NFC locations"}
             </p>
           </div>
           <button
             type="button"
-            className="inline-flex w-fit items-center rounded-full border border-gray-200 px-3.5 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="inline-flex w-fit items-center rounded-full border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 py-1.5 text-xs font-medium text-gray-600 dark:text-slate-300 transition-colors hover:bg-gray-50 dark:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
             {stats.chart?.period ?? "Last 6 months"}
           </button>
@@ -506,7 +512,7 @@ export default function NFCAnalyticsCard() {
 
         <div className="mt-6 h-64 w-full sm:h-80">
           {chart.data.length === 0 ? (
-            <div className="flex h-full items-center justify-center text-sm text-gray-400">
+            <div className="flex h-full items-center justify-center text-sm text-gray-400 dark:text-slate-500">
               No tap activity recorded yet.
             </div>
           ) : (
@@ -517,14 +523,15 @@ export default function NFCAnalyticsCard() {
               >
                 <defs>
                   <linearGradient id="tapsFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.18} />
+                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.25} />
                     <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
 
                 <CartesianGrid
                   vertical={false}
-                  stroke="#e5e7eb"
+                  stroke="#334155"
+                  strokeOpacity={0.25}
                   strokeDasharray="3 5"
                 />
 
@@ -536,7 +543,7 @@ export default function NFCAnalyticsCard() {
                   tickFormatter={(x: number) => chart.labelByX[x] ?? ""}
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "#9ca3af", fontSize: 12 }}
+                  tick={{ fill: "#94a3b8", fontSize: 12 }}
                   dy={8}
                 />
 
@@ -569,6 +576,13 @@ export default function NFCAnalyticsCard() {
           )}
         </div>
       </div>
+
+      {/* Physical NFC Stands & QR Codes Generator / Manager */}
+      <NfcStandsList
+        businessId={businessId}
+        businessName={profileData?.businessName ?? profileData?.businesses?.[0]?.name}
+        allowedStands={stats?.subscriptionNfcIncluded || 1}
+      />
     </div>
   );
 }

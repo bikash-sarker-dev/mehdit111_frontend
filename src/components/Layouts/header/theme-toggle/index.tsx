@@ -1,21 +1,11 @@
-import { cn } from "@/lib/utils";
+"use client";
+
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Moon, Sun } from "./icons";
-
-const THEMES = [
-  {
-    name: "light",
-    Icon: Sun,
-  },
-  {
-    name: "dark",
-    Icon: Moon,
-  },
-];
+import { Sun, Moon } from "lucide-react";
 
 export function ThemeToggleSwitch() {
-  const { setTheme, theme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -23,34 +13,26 @@ export function ThemeToggleSwitch() {
   }, []);
 
   if (!mounted) {
-    return null;
+    return (
+      <div className="h-9 w-9 rounded-xl border border-slate-200 bg-white/50 dark:border-slate-800 dark:bg-[#0b1727]/50" />
+    );
   }
+
+  const isDark = resolvedTheme === "dark";
 
   return (
     <button
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-      className="group rounded-full bg-gray-3 p-[5px] text-[#111928] outline-1 outline-primary focus-visible:outline dark:bg-[#020D1A] dark:text-current"
+      type="button"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      className="group relative flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 active:scale-95 dark:border-slate-800 dark:bg-[#0b1727] dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
     >
-      <span className="sr-only">
-        Switch to {theme === "light" ? "dark" : "light"} mode
-      </span>
-
-      <span aria-hidden className="relative flex gap-2.5">
-        {/* Indicator */}
-        <span className="absolute size-[38px] rounded-full border border-gray-200 bg-white transition-all dark:translate-x-[48px] dark:border-none dark:bg-dark-2 dark:group-hover:bg-dark-3" />
-
-        {THEMES.map(({ name, Icon }) => (
-          <span
-            key={name}
-            className={cn(
-              "relative grid size-[38px] place-items-center rounded-full",
-              name === "dark" && "dark:text-white",
-            )}
-          >
-            <Icon />
-          </span>
-        ))}
-      </span>
+      {isDark ? (
+        <Sun className="h-4 w-4 text-amber-400 transition-transform duration-200 group-hover:rotate-45" />
+      ) : (
+        <Moon className="h-4 w-4 text-slate-600 transition-transform duration-200 group-hover:-rotate-12 dark:text-slate-300" />
+      )}
     </button>
   );
 }

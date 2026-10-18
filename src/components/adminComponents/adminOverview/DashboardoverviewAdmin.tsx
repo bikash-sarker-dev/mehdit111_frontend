@@ -793,7 +793,7 @@ export function useCachedBusiness() {
 function Skeleton({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded-lg bg-slate-100 ${className}`}
+      className={`animate-pulse rounded-lg bg-slate-200/70 dark:bg-slate-800/70 ${className}`}
       aria-hidden="true"
     />
   );

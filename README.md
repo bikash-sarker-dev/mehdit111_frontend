@@ -1,4 +1,4 @@
-# This is a Shizzle project
+# GrowMoreReviews
 
 **Description:** Real people, Real help, Right when you need it. SomeoneHelp connects you with nearby people who are ready to help - and get rewarded for it.
 
