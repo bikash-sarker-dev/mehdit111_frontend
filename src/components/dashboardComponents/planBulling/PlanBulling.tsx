@@ -703,7 +703,9 @@ import {
   Lock,
   ShieldCheck,
   ArrowRight,
-  Sparkles,
+  Zap,
+  Layers,
+  Bot,
 } from "lucide-react";
 
 // ⚠️ Adjust these paths to match your project
@@ -919,6 +921,8 @@ export default function PlanAndBilling({
   /* ---------------- UI state ---------------- */
   const [notice, setNotice] = useState<Notice>(null);
   const [selectedPlan, setSelectedPlan] = useState<ApiPlan | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [planCategory, setPlanCategory] = useState<"standard" | "scale">("standard");
   const [showCancel, setShowCancel] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
@@ -1132,178 +1136,152 @@ export default function PlanAndBilling({
           </div>
         )}
 
-        {/* ---------------- Plan section ---------------- */}
+        {/* ---------------- Current Plan & Overview ---------------- */}
         <section>
-          <header className="mb-6">
-            <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
-              Plan &amp; Billing
-            </h1>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              You are currently on the{" "}
-              <span className="font-medium text-slate-700 dark:text-slate-200">
-                {subscription?.planName ?? "—"}
-              </span>{" "}
-              plan
-              {currentPlanKey === "FREE_TRIAL" &&
-              subscription?.daysRemaining != null
-                ? ` (${subscription.daysRemaining} days remaining)`
-                : ""}
-              . Upgrade or change at any time.
-            </p>
+          <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
+                Plan &amp; Billing
+              </h1>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Manage your active subscription, quotas, and invoices.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowUpgradeModal(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-500/20 transition-all hover:from-blue-700 hover:to-indigo-700 focus:outline-none"
+              >
+                <Zap className="h-4 w-4" />
+                {currentPlanKey === "FREE_TRIAL" || !isPaidPlan ? "Upgrade to Paid Plan" : "Change / Upgrade Plan"}
+              </button>
+            </div>
           </header>
 
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {paidPlans.map((plan) => {
-              const isPopular = !!plan.isPopular;
-              const isCurrent = plan.plan === currentPlanKey && isActive;
-              const isUpgrade = plan.priceMonthly > currentPrice;
-
-              let label = "Get Started";
-              if (isCurrent) label = "Current Plan";
-              else if (isPaidPlan) label = isUpgrade ? "Upgrade" : "Downgrade";
-
-              return (
-                <div
-                  key={plan.plan}
-                  className={[
-                    "relative flex flex-col rounded-2xl p-6 transition-shadow",
-                    isPopular
-                      ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20 sm:scale-[1.02]"
-                      : "bg-white dark:bg-[#0b1727] text-slate-900 dark:text-white shadow-sm ring-1 ring-slate-200 dark:ring-slate-800",
-                  ].join(" ")}
-                >
-                  {isPopular && (
-                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-400 px-3 py-1 text-xs font-semibold text-amber-950 shadow">
-                      Most Popular
+          {/* Active Plan Hero Card */}
+          <div className="relative mb-6 overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/50 to-blue-50/30 p-6 sm:p-8 shadow-sm dark:border-slate-800 dark:from-[#0b1727] dark:via-[#0b1727] dark:to-blue-950/20">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
+                    <Star className="h-3.5 w-3.5 fill-blue-600 text-blue-600 dark:fill-blue-400 dark:text-blue-400" />
+                    Active Plan
+                  </span>
+                  {subscription?.status && (
+                    <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                      {subscription.status}
                     </span>
                   )}
-
-                  <div className="mb-1 flex items-center justify-between">
-                    <span
-                      className={[
-                        "text-xs font-semibold tracking-wide",
-                        isPopular ? "text-blue-100" : "text-slate-500 dark:text-slate-400",
-                      ].join(" ")}
-                    >
-                      {plan.name.toUpperCase()}
+                  {currentPlanKey === "FREE_TRIAL" && subscription?.daysRemaining != null && (
+                    <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                      ⏳ {subscription.daysRemaining} days left in trial
                     </span>
-                    {isCurrent && (
-                      <span
-                        className={[
-                          "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
-                          isPopular
-                            ? "bg-white/15 text-white"
-                            : "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300",
-                        ].join(" ")}
-                      >
-                        <Star className="h-3 w-3" />
-                        Current
-                      </span>
-                    )}
-                  </div>
+                  )}
+                </div>
 
-                  <div className="mb-2 flex items-baseline gap-1">
-                    <span className="text-4xl font-bold">
-                      ${plan.priceMonthly}
-                    </span>
-                    <span
-                      className={isPopular ? "text-blue-100" : "text-slate-500 dark:text-slate-400"}
-                    >
-                      /month
-                    </span>
-                  </div>
-
-                  <p
-                    className={[
-                      "mb-5 text-sm leading-relaxed",
-                      isPopular ? "text-blue-50" : "text-slate-500 dark:text-slate-400",
-                    ].join(" ")}
-                  >
-                    {plan.tagline}
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    {subscription?.planName ?? "Free Trial"}
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 max-w-xl">
+                    {currentPlanData?.tagline ??
+                      "Full access to automated review collection, SMS invite workflows, and AI auto-responses."}
                   </p>
+                </div>
 
-                  <ul className="mb-6 flex flex-1 flex-col gap-3">
-                    {(plan.features ?? []).map((feature) => (
-                      <li
-                        key={feature}
-                        className="flex items-start gap-2 text-sm"
-                      >
-                        <span
-                          className={[
-                            "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full",
-                            isPopular ? "bg-white/20" : "bg-blue-100 dark:bg-blue-950/50",
-                          ].join(" ")}
-                        >
-                          <Check
-                            className={[
-                              "h-2.5 w-2.5",
-                              isPopular ? "text-white" : "text-blue-600 dark:text-blue-400",
-                            ].join(" ")}
-                            strokeWidth={3}
-                          />
-                        </span>
-                        <span
-                          className={
-                            isPopular ? "text-white" : "text-slate-700 dark:text-slate-200"
-                          }
-                        >
-                          {feature}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+                <div className="flex items-baseline gap-1.5 pt-1">
+                  <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+                    ${currentPrice}
+                  </span>
+                  <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    / month
+                  </span>
+                  {subscription?.currentPeriodEnd && (
+                    <span className="ml-3 text-xs text-slate-400 dark:text-slate-500">
+                      • {currentPlanKey === "FREE_TRIAL" ? "Trial ends" : "Renews on"}{" "}
+                      <strong className="font-semibold text-slate-700 dark:text-slate-300">
+                        {fmtDate(subscription.currentPeriodEnd)}
+                      </strong>
+                    </span>
+                  )}
+                </div>
+              </div>
 
+              {/* Action buttons on card */}
+              <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowUpgradeModal(true)}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-blue-600/25 transition-colors hover:bg-blue-700"
+                >
+                  <Zap className="h-4 w-4" />
+                  {currentPlanKey === "FREE_TRIAL" || !isPaidPlan ? "Upgrade Now" : "Change Plan"}
+                </button>
+                {isPaidPlan && isActive && (
                   <button
                     type="button"
-                    disabled={isCurrent || confirming}
-                    onClick={() => setSelectedPlan(plan)}
-                    className={[
-                      "mt-auto flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60",
-                      isPopular
-                        ? "bg-white text-blue-600 hover:bg-blue-50 focus-visible:ring-white"
-                        : "bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600",
-                    ].join(" ")}
+                    onClick={() => setShowCancel(true)}
+                    className="flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-medium text-slate-600 transition-colors hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-red-950/30 dark:hover:text-red-400"
                   >
-                    {label}
+                    Cancel Subscription
                   </button>
-                </div>
-              );
-            })}
+                )}
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* ---------------- Billing section ---------------- */}
+        {/* ---------------- Quotas & Billing Metrics ---------------- */}
         <section>
           <header className="mb-6">
             <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
-              Billing
+              Usage &amp; Quotas
             </h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Your subscription details and usage for the current period.
+              Current period usage allocations and hardware entitlement.
             </p>
           </header>
 
           {/* Summary cards */}
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="flex items-center gap-4 rounded-2xl bg-white dark:bg-[#0b1727] p-5 ring-1 ring-slate-200 dark:ring-slate-800">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/40">
-                <Star className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40">
+                <MessageSquare className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </span>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="truncate text-base font-semibold text-slate-900 dark:text-white">
-                  {subscription?.planName ?? "—"}
+                  {quotas?.sms?.used ?? 0} / {quotas?.sms?.limit ?? 0}
                 </p>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Current Plan
-                  {subscription?.status && (
-                    <span className="ml-1.5 rounded-full bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[10px] font-medium text-slate-600 dark:text-slate-300">
-                      {subscription.status}
-                    </span>
-                  )}
+                <p className="text-sm text-slate-500 dark:text-slate-400">SMS Invites Used</p>
+                <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                  <div
+                    className="h-full rounded-full bg-emerald-500"
+                    style={{
+                      width: `${Math.min(quotas?.sms?.usagePercentage ?? 0, 100)}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 rounded-2xl bg-white dark:bg-[#0b1727] p-5 ring-1 ring-slate-200 dark:ring-slate-800">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/40">
+                <Bot className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-base font-semibold text-slate-900 dark:text-white">
+                  {quotas?.aiReply?.used ?? 0} / {quotas?.aiReply?.limit ?? 0}
                 </p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">
-                  {currency(currentPrice, subscription?.currency)} / month
-                </p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">AI Auto-Replies</p>
+                <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                  <div
+                    className="h-full rounded-full bg-blue-500"
+                    style={{
+                      width: `${Math.min(quotas?.aiReply?.usagePercentage ?? 0, 100)}%`,
+                    }}
+                  />
+                </div>
               </div>
             </div>
 
@@ -1316,33 +1294,11 @@ export default function PlanAndBilling({
                   {fmtDate(subscription?.currentPeriodEnd)}
                 </p>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  {currentPlanKey === "FREE_TRIAL"
-                    ? "Trial Ends"
-                    : "Renews / Ends"}
+                  {currentPlanKey === "FREE_TRIAL" ? "Trial Ends" : "Billing Cycle Renews"}
                 </p>
                 <p className="text-xs text-slate-400 dark:text-slate-500">
                   Started {fmtDate(subscription?.currentPeriodStart)}
                 </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 rounded-2xl bg-white dark:bg-[#0b1727] p-5 ring-1 ring-slate-200 dark:ring-slate-800">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40">
-                <MessageSquare className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-base font-semibold text-slate-900 dark:text-white">
-                  {quotas?.sms?.used ?? 0} / {quotas?.sms?.limit ?? 0}
-                </p>
-                <p className="text-sm text-slate-500 dark:text-slate-400">SMS Used</p>
-                <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                  <div
-                    className="h-full rounded-full bg-emerald-500"
-                    style={{
-                      width: `${Math.min(quotas?.sms?.usagePercentage ?? 0, 100)}%`,
-                    }}
-                  />
-                </div>
               </div>
             </div>
           </div>
@@ -1623,7 +1579,7 @@ export default function PlanAndBilling({
               </button>
 
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide">
-                <Sparkles className="h-3 w-3" />
+                <Zap className="h-3 w-3" />
                 {modalAction} plan
               </span>
               <h3 className="mt-3 text-2xl font-bold">{selectedPlan.name}</h3>
@@ -1785,6 +1741,195 @@ export default function PlanAndBilling({
                 {cancelling && <Loader2 className="h-4 w-4 animate-spin" />}
                 Yes, Cancel
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ---------------- Available Plans / Upgrade Modal ---------------- */}
+      {showUpgradeModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm overflow-y-auto"
+          onClick={() => setShowUpgradeModal(false)}
+        >
+          <div
+            className="my-8 w-full max-w-5xl overflow-hidden rounded-3xl bg-white dark:bg-[#0b1727] shadow-2xl ring-1 ring-slate-200 dark:ring-slate-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="relative border-b border-slate-100 dark:border-slate-800 px-6 py-6 sm:px-8">
+              <button
+                type="button"
+                onClick={() => setShowUpgradeModal(false)}
+                className="absolute right-5 top-5 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold text-xs uppercase tracking-wider">
+                <Layers className="h-4 w-4" />
+                Select a Package
+              </div>
+              <h3 className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
+                Choose the best plan for your business
+              </h3>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Scale your review generation, SMS quota, and Google presence. Switch or cancel anytime.
+              </p>
+
+              {/* Toggle switch between 2 plans each */}
+              <div className="mt-5 flex items-center justify-center">
+                <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1.5 ring-1 ring-slate-200/60 dark:ring-slate-700/60 shadow-inner">
+                  <button
+                    type="button"
+                    onClick={() => setPlanCategory("standard")}
+                    className={[
+                      "flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all",
+                      planCategory === "standard"
+                        ? "bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white",
+                    ].join(" ")}
+                  >
+                    <span>Standard Plans</span>
+                    <span className="rounded-full bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 text-[10px] text-blue-600 dark:text-blue-300">
+                      Starter &amp; Growth
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPlanCategory("scale")}
+                    className={[
+                      "flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all",
+                      planCategory === "scale"
+                        ? "bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white",
+                    ].join(" ")}
+                  >
+                    <span>Scale &amp; High-Volume</span>
+                    <span className="rounded-full bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 text-[10px] text-indigo-600 dark:text-indigo-300">
+                      Pro &amp; Enterprise
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Plans Grid — 2 Clean Cards per View */}
+            <div className="p-6 sm:p-8">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 max-w-3xl mx-auto">
+                {(planCategory === "standard"
+                  ? paidPlans.filter((p) => p.plan === "STARTER" || p.plan === "GROWTH")
+                  : paidPlans.filter((p) => p.plan === "PRO" || p.plan === "ENTERPRISE")
+                ).map((plan) => {
+                  const isPopular = !!plan.isPopular;
+                  const isCurrent = plan.plan === currentPlanKey && isActive;
+                  const isUpgrade = plan.priceMonthly > currentPrice;
+
+                  let label = "Get Started";
+                  if (isCurrent) label = "Current Plan";
+                  else if (isPaidPlan) label = isUpgrade ? "Upgrade" : "Downgrade";
+
+                  return (
+                    <div
+                      key={plan.plan}
+                      className={[
+                        "relative flex flex-col rounded-2xl p-6 transition-all",
+                        isPopular
+                          ? "bg-blue-600 text-white shadow-xl shadow-blue-600/20 md:scale-[1.02]"
+                          : "bg-slate-50/60 dark:bg-slate-900/60 text-slate-900 dark:text-white ring-1 ring-slate-200 dark:ring-slate-800",
+                      ].join(" ")}
+                    >
+                      {isPopular && (
+                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-400 px-3 py-1 text-xs font-semibold text-amber-950 shadow">
+                          Most Popular
+                        </span>
+                      )}
+
+                      <div className="mb-1 flex items-center justify-between">
+                        <span
+                          className={[
+                            "text-xs font-semibold tracking-wide",
+                            isPopular ? "text-blue-100" : "text-slate-500 dark:text-slate-400",
+                          ].join(" ")}
+                        >
+                          {plan.name.toUpperCase()}
+                        </span>
+                        {isCurrent && (
+                          <span
+                            className={[
+                              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
+                              isPopular
+                                ? "bg-white/15 text-white"
+                                : "bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300",
+                            ].join(" ")}
+                          >
+                            <Star className="h-3 w-3" />
+                            Current
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="mb-2 flex items-baseline gap-1">
+                        <span className="text-3xl font-extrabold">
+                          ${plan.priceMonthly}
+                        </span>
+                        <span className={isPopular ? "text-blue-100 text-xs" : "text-slate-500 dark:text-slate-400 text-xs"}>
+                          /month
+                        </span>
+                      </div>
+
+                      <p
+                        className={[
+                          "mb-4 text-xs leading-relaxed",
+                          isPopular ? "text-blue-50" : "text-slate-500 dark:text-slate-400",
+                        ].join(" ")}
+                      >
+                        {plan.tagline}
+                      </p>
+
+                      <ul className="mb-6 flex flex-1 flex-col gap-2.5 text-xs">
+                        {(plan.features ?? []).map((feature) => (
+                          <li key={feature} className="flex items-start gap-2">
+                            <span
+                              className={[
+                                "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full",
+                                isPopular ? "bg-white/20" : "bg-blue-100 dark:bg-blue-950/50",
+                              ].join(" ")}
+                            >
+                              <Check
+                                className={[
+                                  "h-2.5 w-2.5",
+                                  isPopular ? "text-white" : "text-blue-600 dark:text-blue-400",
+                                ].join(" ")}
+                                strokeWidth={3}
+                              />
+                            </span>
+                            <span className={isPopular ? "text-white" : "text-slate-700 dark:text-slate-200"}>
+                              {feature}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <button
+                        type="button"
+                        disabled={isCurrent || confirming}
+                        onClick={() => {
+                          setShowUpgradeModal(false);
+                          setSelectedPlan(plan);
+                        }}
+                        className={[
+                          "mt-auto flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-60",
+                          isPopular
+                            ? "bg-white text-blue-600 hover:bg-blue-50"
+                            : "bg-blue-600 text-white hover:bg-blue-700",
+                        ].join(" ")}
+                      >
+                        {label}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
