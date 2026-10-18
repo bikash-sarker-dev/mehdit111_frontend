@@ -19,6 +19,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import {
   useGetNfcCardsQuery,
@@ -59,6 +60,7 @@ export default function NfcStandsList({
   businessName,
   allowedStands = 1,
 }: NfcStandsListProps) {
+  const router = useRouter();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
@@ -128,7 +130,15 @@ export default function NfcStandsList({
       toast.success(`NFC Stand "${res?.data?.label || "Stand"}" created! URL & QR code ready.`);
       refetch();
     } catch (err: any) {
-      toast.error(err?.data?.message || err?.message || "Failed to create NFC Stand");
+      const errorMsg = err?.data?.message || err?.message || "Failed to create NFC Stand";
+      toast.error(errorMsg);
+      setIsCreateModalOpen(false);
+
+      if (err?.status === 403 || errorMsg.toLowerCase().includes("upgrade") || errorMsg.toLowerCase().includes("plan")) {
+        setTimeout(() => {
+          router.push("/dashboard/plan-management");
+        }, 1200);
+      }
     }
   };
 
