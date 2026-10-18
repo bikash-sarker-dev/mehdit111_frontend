@@ -303,8 +303,12 @@ interface StatCardProps {
 /** The arrow already shows direction, so drop a leading +/- from the text. */
 const cleanDelta = (s?: string) => (s ? s.replace(/^[+-]\s*/, "") : "");
 
-/** Round the y-axis max up to a "nice" multiple of 20 (min 20). */
-const niceMax = (max: number) => Math.max(20, Math.ceil(max / 20) * 20);
+/** Round the y-axis max up to a "nice" multiple (adaptive for low and high counts). */
+const niceMax = (max: number) => {
+  if (max <= 4) return 4;
+  if (max <= 10) return 10;
+  return Math.max(20, Math.ceil(max / 20) * 20);
+};
 
 /* ---------------------------- Sub UI ---------------------------- */
 
