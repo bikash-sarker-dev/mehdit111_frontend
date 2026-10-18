@@ -82,7 +82,7 @@ export default function HelpSupport() {
     const targetEmail =
       form.category === "Technical Support"
         ? "support@growmorereviews.com"
-        : "Mehdi@growmorereviews.com";
+        : "mehdi@growmorereviews.com";
 
     const mailtoUrl = `mailto:${targetEmail}?subject=${encodeURIComponent(
       `[${form.category}] ${form.subject || "Support Inquiry"}`
@@ -172,16 +172,16 @@ export default function HelpSupport() {
                 Customer Representative
               </span>
               <a
-                href="mailto:Mehdi@growmorereviews.com"
+                href="mailto:mehdi@growmorereviews.com"
                 className="mt-0.5 block break-all text-sm font-semibold text-emerald-600 hover:underline dark:text-emerald-400"
               >
-                Mehdi@growmorereviews.com
+                mehdi@growmorereviews.com
               </a>
             </div>
           </div>
 
           <a
-            href="mailto:Mehdi@growmorereviews.com?subject=Customer%20Service%20Inquiry"
+            href="mailto:mehdi@growmorereviews.com?subject=Customer%20Service%20Inquiry"
             className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
           >
             <Mail className="h-3.5 w-3.5" />
@@ -319,7 +319,7 @@ export default function HelpSupport() {
               </h3>
               <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-400">
                 Your email client was opened with your support request. You can also reach us directly at{" "}
-                <strong>support@growmorereviews.com</strong> or <strong>Mehdi@growmorereviews.com</strong>.
+                <strong>support@growmorereviews.com</strong> or <strong>mehdi@growmorereviews.com</strong>.
               </p>
               <button
                 type="button"

@@ -15,8 +15,8 @@ const COMPANY = {
   tradeName: "Grow More Reviews",
   brandStatement:
     "Grow More Reviews is a product and operating brand of Nexora Automation Inc., an Alberta, Canada corporation.",
-  email: "Mehdi@growmorereviews.com",
-  customerEmail: "Mehdi@growmorereviews.com",
+  email: "mehdi@growmorereviews.com",
+  customerEmail: "mehdi@growmorereviews.com",
   supportEmail: "support@growmorereviews.com",
   edmontonOffice: {
     name: "Edmonton Office (HQ)",

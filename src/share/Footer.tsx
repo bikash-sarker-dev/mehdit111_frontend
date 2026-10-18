@@ -105,10 +105,10 @@ export default function Footer() {
             <p className="text-xs text-slate-400">
               Customer Service:{" "}
               <a
-                href="mailto:Mehdi@growmorereviews.com"
+                href="mailto:mehdi@growmorereviews.com"
                 className="text-blue-400 hover:underline"
               >
-                Mehdi@growmorereviews.com
+                mehdi@growmorereviews.com
               </a>{" "}
               | Technical Support:{" "}
               <a
@@ -178,10 +178,10 @@ export default function Footer() {
                     <Mail className="h-3.5 w-3.5 text-slate-400" />
                     <span className="text-slate-400">Customer Service:</span>
                     <a
-                      href="mailto:Mehdi@growmorereviews.com"
+                      href="mailto:mehdi@growmorereviews.com"
                       className="font-medium text-blue-400 hover:underline"
                     >
-                      Mehdi@growmorereviews.com
+                      mehdi@growmorereviews.com
                     </a>
                   </div>
                   <div className="inline-flex items-center gap-1.5">
@@ -245,10 +245,10 @@ export default function Footer() {
                     <Mail className="h-3.5 w-3.5 text-slate-400" />
                     <span className="text-slate-400">Customer Service:</span>
                     <a
-                      href="mailto:Mehdi@growmorereviews.com"
+                      href="mailto:mehdi@growmorereviews.com"
                       className="font-medium text-blue-400 hover:underline"
                     >
-                      Mehdi@growmorereviews.com
+                      mehdi@growmorereviews.com
                     </a>
                   </div>
                   <div className="inline-flex items-center gap-1.5">
