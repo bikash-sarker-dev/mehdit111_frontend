@@ -214,7 +214,8 @@ import {
   Loader2,
   Lock,
   ShieldCheck,
-  Sparkles,
+  Zap,
+  Layers,
   X,
 } from "lucide-react";
 
@@ -366,6 +367,7 @@ export default function PricingSection({
 
   const [selectedPlan, setSelectedPlan] = useState<ApiPlan | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
+  const [planCategory, setPlanCategory] = useState<"standard" | "scale">("standard");
 
   const loginUrl = `${loginHref}?${redirectParam}=${encodeURIComponent(returnTo)}`;
 
@@ -484,6 +486,56 @@ export default function PricingSection({
               .
             </p>
           )}
+
+          {/* Toggle Category */}
+          <div className="mt-8 flex items-center justify-center">
+            <div className="inline-flex rounded-2xl bg-white p-1.5 shadow-sm ring-1 ring-slate-200">
+              <button
+                type="button"
+                onClick={() => setPlanCategory("standard")}
+                className={[
+                  "flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all",
+                  planCategory === "standard"
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-slate-600 hover:text-slate-900",
+                ].join(" ")}
+              >
+                <span>Standard Plans</span>
+                <span
+                  className={[
+                    "rounded-full px-2 py-0.5 text-xs font-medium",
+                    planCategory === "standard"
+                      ? "bg-blue-500 text-white"
+                      : "bg-slate-100 text-slate-600",
+                  ].join(" ")}
+                >
+                  Starter &amp; Growth
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPlanCategory("scale")}
+                className={[
+                  "flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all",
+                  planCategory === "scale"
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-slate-600 hover:text-slate-900",
+                ].join(" ")}
+              >
+                <span>High-Volume &amp; Agency</span>
+                <span
+                  className={[
+                    "rounded-full px-2 py-0.5 text-xs font-medium",
+                    planCategory === "scale"
+                      ? "bg-blue-500 text-white"
+                      : "bg-slate-100 text-slate-600",
+                  ].join(" ")}
+                >
+                  Pro &amp; Enterprise
+                </span>
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Error loading plans */}
@@ -505,11 +557,11 @@ export default function PricingSection({
 
         {/* Loading skeletons */}
         {plansLoading && (
-          <div className="mx-auto mt-12 grid max-w-md grid-cols-1 gap-6 sm:mt-16 lg:max-w-6xl lg:grid-cols-3 lg:gap-8">
-            {[0, 1, 2].map((i) => (
+          <div className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-6 sm:mt-16 sm:grid-cols-2 lg:gap-8">
+            {[0, 1].map((i) => (
               <div
                 key={i}
-                className="h-[28rem] animate-pulse rounded-2xl border border-slate-200 bg-white motion-reduce:animate-none dark:border-slate-800 dark:bg-[#0b1727]"
+                className="h-[28rem] animate-pulse rounded-2xl border border-slate-200 bg-white motion-reduce:animate-none"
               />
             ))}
           </div>
@@ -524,10 +576,13 @@ export default function PricingSection({
           </div>
         )}
 
-        {/* Plans */}
+        {/* Plans: 2 Balanced Cards per view */}
         {!plansLoading && !plansError && paidPlans.length > 0 && (
-          <div className="mx-auto mt-12 grid max-w-md grid-cols-1 gap-6 sm:mt-16 lg:max-w-6xl lg:grid-cols-3 lg:items-stretch lg:gap-8">
-            {paidPlans.map((plan) => {
+          <div className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-6 sm:mt-16 sm:grid-cols-2 sm:items-stretch lg:gap-8">
+            {(planCategory === "standard"
+              ? paidPlans.filter((p) => p.plan === "STARTER" || p.plan === "GROWTH")
+              : paidPlans.filter((p) => p.plan === "PRO" || p.plan === "ENTERPRISE")
+            ).map((plan) => {
               const featured = !!plan.isPopular;
               const isCurrent =
                 isLoggedIn && plan.plan === currentPlanKey && isActive;
@@ -666,7 +721,7 @@ export default function PricingSection({
               </button>
 
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide">
-                <Sparkles className="h-3 w-3" />
+                <Zap className="h-3 w-3" />
                 {modalAction} plan
               </span>
               <h3 className="mt-3 text-2xl font-bold">{selectedPlan.name}</h3>
