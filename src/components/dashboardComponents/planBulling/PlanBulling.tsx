@@ -1063,19 +1063,122 @@ export default function PlanAndBilling({
     }
   };
 
-  /* ---------------- Invoices (optional) ---------------- */
+  /* ---------------- Invoices (derived from active subscription or props) ---------------- */
+  const activeInvoices: Invoice[] = useMemo(() => {
+    if (invoices && invoices.length > 0) return invoices;
+    if (isPaidPlan && subscription) {
+      const pName = subscription.planName || subscription.plan;
+      const start = fmtDate(subscription.currentPeriodStart);
+      const end = fmtDate(subscription.currentPeriodEnd);
+      return [
+        {
+          id: `INV-${subscription.id?.slice(-6)?.toUpperCase() || "SUB-01"}`,
+          date: start,
+          billingPeriod: `${start} – ${end}`,
+          plan: pName,
+          amount: currentPrice,
+          status: "Paid",
+          paymentMethod: "Online Card Payment",
+        },
+      ];
+    }
+    return [];
+  }, [invoices, isPaidPlan, subscription, currentPrice]);
+
+  const handleDownloadPdf = (inv: Invoice) => {
+    if (onDownloadInvoice) {
+      onDownloadInvoice(inv.id);
+      return;
+    }
+    // Professional print-to-PDF invoice window
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      window.print();
+      return;
+    }
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Invoice - ${inv.id}</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 40px; color: #1e293b; }
+            .header { display: flex; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; }
+            .logo { font-size: 24px; font-weight: 800; color: #2563eb; }
+            .badge { display: inline-block; padding: 4px 12px; background: #dcfce7; color: #15803d; border-radius: 9999px; font-weight: 700; font-size: 12px; }
+            .details { margin-bottom: 30px; }
+            .details table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            .details th, .details td { text-align: left; padding: 12px 16px; border-bottom: 1px solid #e2e8f0; }
+            .details th { background: #f8fafc; font-size: 12px; text-transform: uppercase; color: #64748b; }
+            .total { text-align: right; margin-top: 30px; font-size: 18px; font-weight: 800; }
+            .footer { margin-top: 50px; text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px solid #f1f5f9; padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div>
+              <div class="logo">GrowMoreReviews</div>
+              <p style="color: #64748b; margin: 4px 0 0 0; font-size: 13px;">Official Billing Receipt</p>
+            </div>
+            <div style="text-align: right;">
+              <h2 style="margin: 0; font-size: 20px;">${inv.id}</h2>
+              <span class="badge">${inv.status}</span>
+              <p style="color: #64748b; font-size: 12px; margin: 6px 0 0 0;">Date: ${inv.date}</p>
+            </div>
+          </div>
+
+          <div class="details">
+            <p><strong>Billed To:</strong> ${profileRes?.data?.business?.name || profileRes?.data?.name || "Customer"}</p>
+            <p style="color: #64748b; font-size: 13px; margin: 2px 0 20px 0;">Billing Period: ${inv.billingPeriod}</p>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>Payment Method</th>
+                  <th style="text-align: right;">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>${inv.plan} Subscription</strong><br/><span style="font-size: 12px; color: #64748b;">Monthly Recurring Platform Access</span></td>
+                  <td>${inv.paymentMethod}</td>
+                  <td style="text-align: right; font-weight: bold;">$${inv.amount.toFixed(2)}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="total">
+              Total Paid: $${inv.amount.toFixed(2)} USD
+            </div>
+          </div>
+
+          <div class="footer">
+            Thank you for partnering with GrowMoreReviews.<br/>
+            For billing inquiries or questions, contact support@growmorereviews.com
+          </div>
+
+          <script>
+            window.onload = function() { window.print(); }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
   const years = useMemo(() => {
     const set = new Set<string>();
-    invoices.forEach((inv) => {
+    activeInvoices.forEach((inv) => {
       const m = inv.date.match(/\d{4}/);
       if (m) set.add(m[0]);
     });
     return Array.from(set).sort((a, b) => Number(b) - Number(a));
-  }, [invoices]);
+  }, [activeInvoices]);
 
   const filteredInvoices = useMemo(
     () =>
-      invoices.filter((inv) => {
+      activeInvoices.filter((inv) => {
         const q = search.trim().toLowerCase();
         const matchesSearch =
           q === "" ||
@@ -1166,10 +1269,19 @@ export default function PlanAndBilling({
                 <div className="flex flex-wrap items-center gap-2.5">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
                     <Star className="h-3.5 w-3.5 fill-blue-600 text-blue-600 dark:fill-blue-400 dark:text-blue-400" />
-                    Active Plan
+                    {subscription?.status === "CANCELED" ? "Current Plan (Cancels At Period End)" : "Active Plan"}
                   </span>
                   {subscription?.status && (
-                    <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                    <span
+                      className={[
+                        "rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider",
+                        subscription.status === "ACTIVE"
+                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                          : subscription.status === "CANCELED"
+                          ? "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300"
+                          : "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300",
+                      ].join(" ")}
+                    >
                       {subscription.status}
                     </span>
                   )}
@@ -1199,7 +1311,7 @@ export default function PlanAndBilling({
                   </span>
                   {subscription?.currentPeriodEnd && (
                     <span className="ml-3 text-xs text-slate-400 dark:text-slate-500">
-                      • {currentPlanKey === "FREE_TRIAL" ? "Trial ends" : "Renews on"}{" "}
+                      • {subscription.status === "CANCELED" ? "Access ends on" : currentPlanKey === "FREE_TRIAL" ? "Trial ends" : "Renews on"}{" "}
                       <strong className="font-semibold text-slate-700 dark:text-slate-300">
                         {fmtDate(subscription.currentPeriodEnd)}
                       </strong>
@@ -1338,11 +1450,20 @@ export default function PlanAndBilling({
 
           {/* Current period notice + cancel */}
           {subscription && (
-            <div className="mb-6 flex flex-col gap-3 rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-800 ring-1 ring-inset ring-blue-100 sm:flex-row sm:items-center sm:justify-between">
+            <div
+              className={[
+                "mb-6 flex flex-col gap-3 rounded-xl px-4 py-3 text-sm ring-1 ring-inset sm:flex-row sm:items-center sm:justify-between",
+                subscription.status === "CANCELED"
+                  ? "bg-amber-50 text-amber-900 ring-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:ring-amber-900/50"
+                  : "bg-blue-50 text-blue-800 ring-blue-100 dark:bg-blue-950/30 dark:text-blue-300 dark:ring-blue-900/50",
+              ].join(" ")}
+            >
               <div className="flex items-start gap-2">
                 <CreditCard className="mt-0.5 h-4 w-4 shrink-0" />
                 <p>
-                  {isPaidPlan
+                  {subscription.status === "CANCELED"
+                    ? `Your subscription has been cancelled. You retain full access to all ${subscription.planName || "Enterprise"} features until ${fmtDate(subscription.currentPeriodEnd)}, after which you will not be billed again.`
+                    : isPaidPlan
                     ? `Your current period runs until ${fmtDate(subscription.currentPeriodEnd)}.`
                     : `Your free trial ends on ${fmtDate(subscription.currentPeriodEnd)}. Choose a plan above to keep your access.`}
                 </p>
@@ -1454,7 +1575,7 @@ export default function PlanAndBilling({
                       <td className="whitespace-nowrap px-5 py-3.5 text-right">
                         <button
                           type="button"
-                          onClick={() => onDownloadInvoice?.(inv.id)}
+                          onClick={() => handleDownloadPdf(inv)}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
                         >
                           <Download className="h-3.5 w-3.5" />
@@ -1470,7 +1591,7 @@ export default function PlanAndBilling({
                         colSpan={8}
                         className="px-5 py-10 text-center text-sm text-slate-400 dark:text-slate-500"
                       >
-                        {invoices.length === 0
+                        {activeInvoices.length === 0
                           ? "No invoices yet."
                           : "No invoices match your search."}
                       </td>
@@ -1536,7 +1657,7 @@ export default function PlanAndBilling({
                 </dl>
                 <button
                   type="button"
-                  onClick={() => onDownloadInvoice?.(inv.id)}
+                  onClick={() => handleDownloadPdf(inv)}
                   className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
                 >
                   <Download className="h-3.5 w-3.5" />
@@ -1547,7 +1668,7 @@ export default function PlanAndBilling({
 
             {filteredInvoices.length === 0 && (
               <div className="rounded-2xl bg-white p-8 text-center text-sm text-slate-400 ring-1 ring-slate-200">
-                {invoices.length === 0
+                {activeInvoices.length === 0
                   ? "No invoices yet."
                   : "No invoices match your search."}
               </div>
