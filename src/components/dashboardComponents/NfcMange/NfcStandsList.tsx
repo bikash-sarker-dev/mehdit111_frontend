@@ -73,7 +73,11 @@ export default function NfcStandsList({
     isLoading,
     isFetching,
     refetch,
-  } = useGetNfcCardsQuery(businessId, { skip: !businessId });
+  } = useGetNfcCardsQuery(businessId, {
+    skip: !businessId,
+    pollingInterval: 3000,
+    refetchOnFocus: true,
+  });
 
   const [createNfcCard, { isLoading: isCreating }] = useCreateNfcCardMutation();
   const [updateNfcCard, { isLoading: isUpdating }] = useUpdateNfcCardMutation();
@@ -447,6 +451,16 @@ export default function NfcStandsList({
                           </>
                         )}
                       </button>
+                      <a
+                        href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api/v1"}/nfc/t/${card.shortCode}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 shrink-0 transition-colors"
+                        title="Test NFC Tap & Review Flow"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        Test Flow
+                      </a>
                     </div>
 
                     <p className="text-[11px] text-gray-400 dark:text-slate-500">

@@ -445,7 +445,9 @@ import {
   Plus,
   ArrowRight,
   Send,
+  RefreshCw,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 // ⚠️ Adjust these import paths to match your project
 import { useGetMeProfileQuery } from "@/redux/api/getMe/getMeApi";
@@ -453,6 +455,7 @@ import {
   useGetChartsQuery,
   useGetMyBusinessProfileQuery,
   useGetCampaignStatsQuery,
+  useSyncGoogleReviewsMutation,
 } from "@/redux/api/userDashboard/overview/overviewApi";
 
 /* -------------------------------------------------------------------------- */
@@ -619,18 +622,43 @@ export default function ReviewDashboard() {
   const meBusiness = me?.businesses?.find((b) => b.id === businessId);
   const skip = !businessId;
 
-  /* 2) Business-scoped queries (cached per businessId / period argument) */
-  const { data: bizRes } = useGetMyBusinessProfileQuery(businessId, { skip });
+  /* 2) Business-scoped queries (cached per businessId / period argument with auto-polling) */
+  const { data: bizRes, refetch: refetchBiz } = useGetMyBusinessProfileQuery(
+    businessId,
+    { skip, pollingInterval: 4000, refetchOnFocus: true },
+  );
   const {
     data: dashRes,
     isLoading: dashLoading,
     isFetching: dashFetching,
     isError: dashError,
-  } = useGetChartsQuery({ businessId, period: PERIOD_API[period] }, { skip });
-  const { data: campRes, isLoading: campLoading } = useGetCampaignStatsQuery(
-    businessId,
-    { skip },
+    refetch: refetchDash,
+  } = useGetChartsQuery(
+    { businessId, period: PERIOD_API[period] },
+    { skip, pollingInterval: 4000, refetchOnFocus: true },
   );
+  const { data: campRes, isLoading: campLoading, refetch: refetchCamp } =
+    useGetCampaignStatsQuery(businessId, {
+      skip,
+      pollingInterval: 4000,
+      refetchOnFocus: true,
+    });
+
+  const [syncGoogleReviews, { isLoading: isSyncing }] =
+    useSyncGoogleReviewsMutation();
+
+  const handleSyncReviews = async () => {
+    if (!businessId) return;
+    try {
+      await syncGoogleReviews(businessId).unwrap();
+      toast.success("Google reviews synced successfully!");
+      refetchBiz();
+      refetchDash();
+      refetchCamp();
+    } catch (err: any) {
+      toast.error(err?.data?.message || err?.message || "Failed to sync reviews");
+    }
+  };
 
   const business =
     (bizRes as ApiEnvelope<BusinessProfile> | undefined)?.data ?? meBusiness;
@@ -768,17 +796,28 @@ export default function ReviewDashboard() {
     <div className="min-h-screen w-full text-slate-900 dark:text-slate-100">
       <div>
         {/* Header */}
-        <header className="mb-6 sm:mb-8">
-          {meLoading ? (
-            <Skeleton className="h-8 w-64" />
-          ) : (
-            <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
-              {greeting()}, {businessName}
-            </h1>
-          )}
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Here&apos;s how your review growth is performing — {rangeLabel}.
-          </p>
+        <header className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            {meLoading ? (
+              <Skeleton className="h-8 w-64" />
+            ) : (
+              <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
+                {greeting()}, {businessName}
+              </h1>
+            )}
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Here&apos;s how your review growth is performing — {rangeLabel}.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleSyncReviews}
+            disabled={isSyncing}
+            className="inline-flex items-center gap-2 self-start rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1727] px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 sm:self-auto"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin text-blue-500" : ""}`} />
+            {isSyncing ? "Syncing Reviews..." : "Sync Google Reviews"}
+          </button>
         </header>
 
         {dashError && (
