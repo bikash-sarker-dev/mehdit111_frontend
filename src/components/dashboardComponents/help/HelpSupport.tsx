@@ -16,6 +16,8 @@ import {
   Clock,
   Sparkles,
   CheckCircle,
+  Headphones,
+  MessageSquare,
 } from "lucide-react";
 
 const OFFICES = [
@@ -63,9 +65,13 @@ const FAQS = [
   },
 ];
 
+import toast from "react-hot-toast";
+import { useSendSupportInquiryMutation } from "@/redux/api/userDashboard/support/supportApi";
+
 export default function HelpSupport() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [submitted, setSubmitted] = useState(false);
+  const [dispatchedEmail, setDispatchedEmail] = useState("");
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -74,24 +80,39 @@ export default function HelpSupport() {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [sendSupportInquiry, { isLoading: isDispatching }] =
+    useSendSupportInquiryMutation();
+
+  const currentTargetEmail =
+    form.category === "Technical Support"
+      ? "support@growmorereviews.com"
+      : "mehdi@growmorereviews.com";
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.email || !form.message) return;
 
-    // Launch email client with pre-filled content to ensure immediate delivery
-    const targetEmail =
-      form.category === "Technical Support"
-        ? "support@growmorereviews.com"
-        : "mehdi@growmorereviews.com";
+    const targetEmail = currentTargetEmail;
 
-    const mailtoUrl = `mailto:${targetEmail}?subject=${encodeURIComponent(
-      `[${form.category}] ${form.subject || "Support Inquiry"}`
-    )}&body=${encodeURIComponent(
-      `Name: ${form.name}\nEmail: ${form.email}\nCategory: ${form.category}\n\nMessage:\n${form.message}`
-    )}`;
+    try {
+      await sendSupportInquiry(form).unwrap();
+      toast.success(`Support request successfully dispatched to ${targetEmail}!`);
+      setDispatchedEmail(targetEmail);
+      setSubmitted(true);
+    } catch (err: any) {
+      console.warn("Backend email dispatch notice, triggering client mailto fallback:", err);
+      // Fallback: Launch email client with pre-filled content to ensure immediate delivery
+      const mailtoUrl = `mailto:${targetEmail}?subject=${encodeURIComponent(
+        `[${form.category}] ${form.subject || "Support Inquiry"}`
+      )}&body=${encodeURIComponent(
+        `Name: ${form.name}\nEmail: ${form.email}\nCategory: ${form.category}\n\nMessage:\n${form.message}`
+      )}`;
 
-    window.location.href = mailtoUrl;
-    setSubmitted(true);
+      window.location.href = mailtoUrl;
+      toast.success(`Opening your email client to send to ${targetEmail}`);
+      setDispatchedEmail(targetEmail);
+      setSubmitted(true);
+    }
   };
 
   return (
@@ -301,33 +322,58 @@ export default function HelpSupport() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
         {/* Support Request Form */}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-[#0b1727] sm:p-8 lg:col-span-7">
-          <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-            <Sparkles className="h-5 w-5" />
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
-              Send a Support Message
-            </h2>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400 border border-blue-100 dark:border-blue-900/60 shadow-xs">
+              <Headphones className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
+                Send a Support Message
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Submit your message and we&apos;ll route it directly to the appropriate team member.
+              </p>
+            </div>
           </div>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            Submit your message and we&apos;ll route it directly to the appropriate team member.
-          </p>
 
           {submitted ? (
             <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-center dark:border-emerald-900/50 dark:bg-emerald-950/40">
               <CheckCircle className="mx-auto h-10 w-10 text-emerald-600 dark:text-emerald-400" />
               <h3 className="mt-3 text-sm font-bold text-emerald-800 dark:text-emerald-300">
-                Message Prepared for Dispatch
+                Support Request Dispatched
               </h3>
               <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-400">
-                Your email client was opened with your support request. You can also reach us directly at{" "}
-                <strong>support@growmorereviews.com</strong> or <strong>mehdi@growmorereviews.com</strong>.
+                Your message has been directly dispatched to{" "}
+                <strong className="underline">{dispatchedEmail}</strong>.
+                Our team will reply to <strong>{form.email}</strong> promptly.
               </p>
-              <button
-                type="button"
-                onClick={() => setSubmitted(false)}
-                className="mt-4 text-xs font-semibold text-emerald-700 underline hover:text-emerald-800 dark:text-emerald-300"
-              >
-                Send another message
-              </button>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
+                <a
+                  href={`mailto:${dispatchedEmail}?subject=${encodeURIComponent(
+                    `[${form.category}] ${form.subject || "Support Inquiry"}`
+                  )}&body=${encodeURIComponent(
+                    `Name: ${form.name}\nEmail: ${form.email}\nCategory: ${form.category}\n\nMessage:\n${form.message}`
+                  )}`}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-900 dark:text-emerald-300 underline"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Open in Mail App (Optional)
+                </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSubmitted(false);
+                    setForm({
+                      ...form,
+                      subject: "",
+                      message: "",
+                    });
+                  }}
+                  className="text-xs font-semibold text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
+                >
+                  Send another message
+                </button>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -369,13 +415,23 @@ export default function HelpSupport() {
                   <select
                     value={form.category}
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 outline-none transition-colors focus:border-blue-500 focus:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400"
+                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 outline-none transition-colors focus:border-blue-500 focus:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400 cursor-pointer"
                   >
-                    <option value="Technical Support">Technical Support (support@)</option>
-                    <option value="Customer Service">Customer Service (mehdi@)</option>
-                    <option value="NFC Card Hardware">NFC Card & Hardware Inquiries</option>
-                    <option value="Billing & Plans">Billing & Plan Management</option>
+                    <option value="Technical Support">Technical Support (support@growmorereviews.com)</option>
+                    <option value="Customer Service">Customer Service (mehdi@growmorereviews.com)</option>
+                    <option value="NFC Card Hardware">NFC Card & Hardware Inquiries (mehdi@growmorereviews.com)</option>
+                    <option value="Billing & Plans">Billing & Plan Management (mehdi@growmorereviews.com)</option>
                   </select>
+
+                  <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                    <span className="inline-block h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                    <span>
+                      Direct destination:{" "}
+                      <strong className="text-blue-600 dark:text-blue-400 font-semibold">
+                        {currentTargetEmail}
+                      </strong>
+                    </span>
+                  </div>
                 </div>
 
                 <div>
@@ -401,17 +457,18 @@ export default function HelpSupport() {
                   rows={4}
                   value={form.message}
                   onChange={(e) => setForm({ ...form, message: e.target.value })}
-                  placeholder="How can our technical or customer support team help you today?"
+                  placeholder="How can our team help you today?"
                   className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 outline-none transition-colors focus:border-blue-500 focus:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400"
                 />
               </div>
 
               <button
                 type="submit"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-xs font-bold text-white shadow-sm transition-colors hover:bg-blue-700 sm:w-auto"
+                disabled={isDispatching}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-xs font-bold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-50 sm:w-auto cursor-pointer"
               >
-                <Send className="h-3.5 w-3.5" />
-                Dispatch Support Request
+                <Send className={`h-3.5 w-3.5 ${isDispatching ? "animate-pulse" : ""}`} />
+                {isDispatching ? "Dispatching..." : `Send to ${currentTargetEmail}`}
               </button>
             </form>
           )}

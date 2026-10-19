@@ -226,6 +226,13 @@ import {
   useGetMyCurrentSubscriptionQuery,
   useUpgradeChangePlanCheckoutMutation,
 } from "@/redux/api/userDashboard/subscription/subscriptionApi";
+import {
+  detectUserCountrySync,
+  detectUserCountryAsync,
+  getPlanPricing,
+  getCountryDetail,
+  COUNTRY_CACHE_KEY,
+} from "@/utils/pricingCurrency";
 
 /* ------------------------------------------------------------------ */
 /*  Types & constants                                                 */
@@ -297,7 +304,7 @@ const extractPlans = (res: any): ApiPlan[] => {
 /* ------------------------------------------------------------------ */
 
 export default function PricingSection({
-  loginHref = "/login",
+  loginHref = "/signIn",
   signupHref = "/signup",
   returnTo = "/#pricing",
   redirectParam = "redirect",
@@ -369,17 +376,42 @@ export default function PricingSection({
   const [modalError, setModalError] = useState<string | null>(null);
   const [planCategory, setPlanCategory] = useState<"standard" | "scale">("standard");
 
-  const loginUrl = `${loginHref}?${redirectParam}=${encodeURIComponent(returnTo)}`;
+  /* ---------------- Location-based Automatic Currency Detection ---------------- */
+  const [selectedCountryCode, setSelectedCountryCode] = useState<string>(() =>
+    detectUserCountrySync()
+  );
+
+  useEffect(() => {
+    let alive = true;
+    const profileCountry = (profile as any)?.businesses?.[0]?.country || (profile as any)?.country;
+    detectUserCountryAsync(profileCountry).then((code) => {
+      if (alive && code) setSelectedCountryCode(code);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [profile]);
+
+  const currentCountry = useMemo(
+    () => getCountryDetail(selectedCountryCode),
+    [selectedCountryCode]
+  );
+
+  const getPlanPrice = (p: ApiPlan): number => {
+    return getPlanPricing(p.plan, selectedCountryCode, p.priceMonthly).price;
+  };
 
   const handleSelect = (plan: ApiPlan) => {
     if (profileLoading) return;
 
-    // Not logged in: remember the plan, then send to login
+    // Not logged in: remember plan and send to signup/signin with return redirect
     if (!isLoggedIn) {
       try {
         sessionStorage.setItem(INTENT_KEY, plan.plan);
+        sessionStorage.setItem("gmr_intended_currency", currentCountry.currency);
+        sessionStorage.setItem("gmr_intended_country", currentCountry.code);
       } catch {}
-      router.push(loginUrl);
+      router.push(`${signupHref}?plan=${encodeURIComponent(plan.plan)}&redirect=${encodeURIComponent(returnTo)}`);
       return;
     }
 
@@ -416,17 +448,13 @@ export default function PricingSection({
 
   const handleCheckout = async () => {
     if (!selectedPlan) return;
-    if (!businessId) {
-      setModalError(
-        "We couldn't find a business on your account. Finish setting up your business in the dashboard first.",
-      );
-      return;
-    }
     setModalError(null);
     try {
       const res = await createCheckout({
-        businessId,
+        businessId: businessId || undefined,
         plan: selectedPlan.plan,
+        currency: currentCountry.currency.toLowerCase(),
+        country: currentCountry.code,
       }).unwrap();
 
       const url: string | undefined = res?.data?.checkoutUrl;
@@ -614,20 +642,29 @@ export default function PricingSection({
                     {plan.name?.toUpperCase()}
                   </p>
 
-                  <div className="mt-3 flex items-baseline gap-1">
+                  <div className="mt-3 flex items-baseline gap-1.5">
                     <span
-                      className={`text-4xl font-bold ${
+                      className={`text-4xl font-bold tracking-tight ${
                         featured ? "text-white" : "text-slate-900"
                       }`}
                     >
-                      {currency(plan.priceMonthly, plan.currency)}
+                      {currentCountry.currencySymbol}{getPlanPrice(plan)}
                     </span>
                     <span
-                      className={`text-sm ${
+                      className={`text-sm font-medium ${
                         featured ? "text-blue-100" : "text-slate-400"
                       }`}
                     >
                       /month
+                    </span>
+                    <span
+                      className={`ml-1 rounded px-1.5 py-0.5 text-[11px] font-semibold ${
+                        featured
+                          ? "bg-white/20 text-white"
+                          : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      {currentCountry.currency}
                     </span>
                   </div>
 
@@ -728,11 +765,14 @@ export default function PricingSection({
               <p className="mt-1 text-sm text-blue-100">
                 {selectedPlan.tagline}
               </p>
-              <div className="mt-5 flex items-baseline gap-1">
+              <div className="mt-5 flex items-baseline gap-1.5">
                 <span className="text-4xl font-bold">
-                  {currency(selectedPlan.priceMonthly, selectedPlan.currency)}
+                  {currentCountry.currencySymbol}{getPlanPrice(selectedPlan)}
                 </span>
                 <span className="text-sm text-blue-100">/ month</span>
+                <span className="ml-1 rounded bg-white/20 px-1.5 py-0.5 text-xs font-semibold text-white">
+                  {currentCountry.currency}
+                </span>
               </div>
             </div>
 

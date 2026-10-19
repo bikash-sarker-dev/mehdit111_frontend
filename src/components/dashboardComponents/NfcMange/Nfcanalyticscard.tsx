@@ -242,12 +242,15 @@ import {
   ArrowUp,
   Calendar,
   Minus,
+  RefreshCw,
   Star,
   TrendingUp,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 import { useGetMeProfileQuery } from "@/redux/api/getMe/getMeApi";
 import { useGetNfcAnalyticsQuery } from "@/redux/api/userDashboard/reviewGap/reviewGapAPI";
+import { useSyncGoogleReviewsMutation } from "@/redux/api/userDashboard/overview/overviewApi";
 import NfcStandsList from "./NfcStandsList";
 
 /* ----------------------------- Types ----------------------------- */
@@ -404,7 +407,25 @@ export default function NFCAnalyticsCard() {
     isFetching,
     isError: nfcError,
     refetch,
-  } = useGetNfcAnalyticsQuery(businessId, { skip: !businessId });
+  } = useGetNfcAnalyticsQuery(businessId, {
+    skip: !businessId,
+    pollingInterval: 3000,
+    refetchOnFocus: true,
+  });
+
+  const [syncGoogleReviews, { isLoading: isSyncing }] =
+    useSyncGoogleReviewsMutation();
+
+  const handleSyncReviews = async () => {
+    if (!businessId) return;
+    try {
+      await syncGoogleReviews(businessId).unwrap();
+      toast.success("Google reviews synced successfully!");
+      refetch();
+    } catch (err: any) {
+      toast.error(err?.data?.message || err?.message || "Failed to sync reviews");
+    }
+  };
 
   const stats: NfcStatsData | undefined = nfc?.data ?? nfc;
 
@@ -457,12 +478,23 @@ export default function NFCAnalyticsCard() {
   return (
     <div className={`mx-auto w-full ${isFetching ? "opacity-80" : ""}`}>
       {/* Header */}
-      <div className="mb-5">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">NFC</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-          Make it easy for customers to start the review experience with one
-          tap.
-        </p>
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">NFC</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+            Make it easy for customers to start the review experience with one
+            tap.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleSyncReviews}
+          disabled={isSyncing}
+          className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-[#0b1727] px-4 py-2 text-xs font-medium text-gray-700 dark:text-slate-200 shadow-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin text-blue-500" : ""}`} />
+          {isSyncing ? "Syncing Reviews..." : "Sync Google Reviews"}
+        </button>
       </div>
 
       {/* Stat cards */}

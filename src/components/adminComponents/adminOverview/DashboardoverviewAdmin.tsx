@@ -936,15 +936,29 @@ export default function DashboardOverview() {
       .filter(([plan]) => plan !== "FREE_TRIAL")
       .reduce((sum, [, count]) => sum + count, 0);
 
-    // Net new subscribers = change in active count from the previous month
-    const newSubs = last && prev ? last.active - prev.active : undefined;
+    // Net new subscribers & cancelled subscribers from live backend cards or monthly difference
+    const backendNewSubs = (overviewData as any)?.cards?.newSubscribers?.value;
+    const backendCancelled = (overviewData as any)?.cards?.cancelledSubscribers?.value;
+
+    const newSubs =
+      backendNewSubs !== undefined
+        ? Number(backendNewSubs)
+        : last && prev
+        ? Math.max(0, last.active - prev.active)
+        : last?.active ?? 0;
+
     const prevNewSubs =
-      prev && prevPrev ? prev.active - prevPrev.active : undefined;
+      prev && prevPrev ? Math.max(0, prev.active - prevPrev.active) : undefined;
+
+    const cancelledCount =
+      backendCancelled !== undefined
+        ? Number(backendCancelled)
+        : last?.cancelled ?? 0;
 
     return [
       {
         label: "Total User",
-        value: overviewData.platformTotals.users.toLocaleString("en-US"),
+        value: (overviewData.platformTotals?.users ?? 0).toLocaleString("en-US"),
         icon: "users",
         tone: "blue",
       },
@@ -973,7 +987,7 @@ export default function DashboardOverview() {
       },
       {
         label: "Canceled",
-        value: (last?.cancelled ?? 0).toLocaleString("en-US"),
+        value: cancelledCount.toLocaleString("en-US"),
         change: toChange(pctChange(last?.cancelled, prev?.cancelled), true),
         icon: "x",
         tone: "red",
@@ -1024,15 +1038,21 @@ export default function DashboardOverview() {
   );
 
   /* ---------- Lists ---------- */
+  const usersList: RecentUser[] = Array.isArray(usersData)
+    ? usersData
+    : Array.isArray((users.data as any)?.data)
+    ? (users.data as any).data
+    : [];
+
   const newUsers = useMemo(
     () =>
-      [...(usersData ?? [])]
+      [...usersList]
         .sort(
           (a, b) =>
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
         )
         .slice(0, 5),
-    [usersData],
+    [usersList],
   );
   const recentBusinesses = (overviewData?.recentBusinesses ?? []).slice(0, 5);
 

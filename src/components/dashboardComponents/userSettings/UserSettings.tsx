@@ -1373,6 +1373,20 @@ export default function UserSettingsPage() {
 
   const currentLogo: string | null = logoPreview ?? business?.logo ?? null;
 
+  const resolveLogoUrl = (url: string | null): string | null => {
+    if (!url) return null;
+    if (url.startsWith("blob:") || url.startsWith("data:")) return url;
+    if (typeof window !== "undefined") {
+      const isLocal =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1";
+      if (isLocal && url.includes("api.growmorereviews.com/uploads/")) {
+        return url.replace("https://api.growmorereviews.com", "http://localhost:5001");
+      }
+    }
+    return url;
+  };
+
   /* ---------- Handlers ---------- */
 
   const handleLogo = (e: ChangeEvent<HTMLInputElement>) => {
@@ -1664,9 +1678,15 @@ export default function UserSettingsPage() {
                             <>
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
-                                src={currentLogo}
+                                src={resolveLogoUrl(currentLogo) || ""}
                                 alt="Company logo"
                                 className="mb-1 h-14 max-w-[70%] object-contain"
+                                onError={(e) => {
+                                  const img = e.currentTarget;
+                                  if (img.src.includes("api.growmorereviews.com")) {
+                                    img.src = img.src.replace("https://api.growmorereviews.com", "http://localhost:5001");
+                                  }
+                                }}
                               />
                               <span className="max-w-full truncate text-sm text-slate-500 dark:text-slate-400">
                                 {logoFile

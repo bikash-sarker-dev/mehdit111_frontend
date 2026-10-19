@@ -749,6 +749,18 @@ interface ApiUser {
   role: string;
   status: string;
   isVerified: boolean;
+  businesses?: {
+    id: string;
+    name: string;
+    logo?: string | null;
+    subscription?: {
+      id: string;
+      plan: string;
+      status: string;
+      currentPeriodStart?: string;
+      currentPeriodEnd?: string | null;
+    } | null;
+  }[];
   createdAt: string;
   updatedAt: string;
 }
@@ -828,31 +840,70 @@ function formatDate(iso?: string): string {
   return Number.isNaN(d.getTime()) ? "—" : dateFormat.format(d);
 }
 
+const PLAN_PRICES: Record<string, number> = {
+  FREE_TRIAL: 0,
+  STARTER: 79,
+  GROWTH: 149,
+  PRO: 299,
+  ENTERPRISE: 499,
+};
+
+const PLAN_LABELS: Record<string, string> = {
+  FREE_TRIAL: "Free Trial",
+  STARTER: "Starter",
+  GROWTH: "Growth",
+  PRO: "Pro",
+  ENTERPRISE: "Enterprise",
+};
+
 /**
- * The `/user` endpoint returns users, not payments, so billing-only fields
- * (plan, amount, transaction id, invoice) are not available yet and render as "—".
- * When a real payments endpoint exists, only this function needs to change.
+ * Maps each user and their active business profile/subscription into a complete billing transaction row.
  */
 function mapUserToRow(u: ApiUser): Transaction {
+  const biz = u.businesses?.[0];
+  const sub = biz?.subscription;
+
+  const rawPlan = sub?.plan || "FREE_TRIAL";
+  const plan = PLAN_LABELS[rawPlan] ?? rawPlan;
+  const amount = PLAN_PRICES[rawPlan] ?? 0;
+
   const status: PaymentStatus =
-    u.status === "active"
+    sub?.status === "ACTIVE"
       ? "Successful"
-      : u.status === "blocked"
-        ? "Failed"
-        : "Pending";
+      : sub?.status === "PAST_DUE" || u.status === "blocked"
+      ? "Failed"
+      : u.status === "active"
+      ? "Successful"
+      : "Pending";
+
+  const refId = sub?.id || biz?.id || u.id;
+  const shortCode = refId.slice(-6).toUpperCase();
+  const transactionId = `TXN-${shortCode}`;
+  const invoice = `INV-${shortCode}`;
+
+  const startDate = sub?.currentPeriodStart
+    ? new Date(sub.currentPeriodStart)
+    : new Date(u.createdAt);
+  const endDate = sub?.currentPeriodEnd
+    ? new Date(sub.currentPeriodEnd)
+    : new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  const period = `${formatDate(startDate.toISOString())} - ${formatDate(
+    endDate.toISOString()
+  )}`;
 
   return {
     id: u.id,
-    business: u.name,
+    business: biz?.name || u.name,
     email: u.email,
-    image: u.image,
-    plan: "—",
-    amount: null,
-    date: formatDate(u.createdAt),
-    period: formatDate(u.updatedAt),
+    image: biz?.logo || u.image,
+    plan,
+    amount,
+    date: formatDate(sub?.currentPeriodStart || u.createdAt),
+    period,
     status,
-    transactionId: "—",
-    invoice: "—",
+    transactionId,
+    invoice,
   };
 }
 

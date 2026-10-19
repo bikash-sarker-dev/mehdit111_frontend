@@ -445,7 +445,14 @@ import {
   Plus,
   ArrowRight,
   Send,
+  RefreshCw,
+  X,
+  Mail,
+  Phone,
+  MessageSquare,
 } from "lucide-react";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 // ⚠️ Adjust these import paths to match your project
 import { useGetMeProfileQuery } from "@/redux/api/getMe/getMeApi";
@@ -453,7 +460,12 @@ import {
   useGetChartsQuery,
   useGetMyBusinessProfileQuery,
   useGetCampaignStatsQuery,
+  useSyncGoogleReviewsMutation,
 } from "@/redux/api/userDashboard/overview/overviewApi";
+import {
+  AddCustomerModal,
+  type AddMode,
+} from "@/components/dashboardComponents/customerManagement/Customersmanager";
 
 /* -------------------------------------------------------------------------- */
 /*                                   Types                                    */
@@ -619,18 +631,57 @@ export default function ReviewDashboard() {
   const meBusiness = me?.businesses?.find((b) => b.id === businessId);
   const skip = !businessId;
 
-  /* 2) Business-scoped queries (cached per businessId / period argument) */
-  const { data: bizRes } = useGetMyBusinessProfileQuery(businessId, { skip });
+  /* 2) Business-scoped queries (cached per businessId / period argument with auto-polling) */
+  const { data: bizRes, refetch: refetchBiz } = useGetMyBusinessProfileQuery(
+    businessId,
+    { skip, pollingInterval: 4000, refetchOnFocus: true },
+  );
   const {
     data: dashRes,
     isLoading: dashLoading,
     isFetching: dashFetching,
     isError: dashError,
-  } = useGetChartsQuery({ businessId, period: PERIOD_API[period] }, { skip });
-  const { data: campRes, isLoading: campLoading } = useGetCampaignStatsQuery(
-    businessId,
-    { skip },
+    refetch: refetchDash,
+  } = useGetChartsQuery(
+    { businessId, period: PERIOD_API[period] },
+    { skip, pollingInterval: 4000, refetchOnFocus: true },
   );
+  const { data: campRes, isLoading: campLoading, refetch: refetchCamp } =
+    useGetCampaignStatsQuery(businessId, {
+      skip,
+      pollingInterval: 4000,
+      refetchOnFocus: true,
+    });
+
+  const [syncGoogleReviews, { isLoading: isSyncing }] =
+    useSyncGoogleReviewsMutation();
+
+  const handleSyncReviews = async () => {
+    if (!businessId) return;
+    try {
+      await syncGoogleReviews(businessId).unwrap();
+      toast.success("Google reviews synced successfully!");
+      refetchBiz();
+      refetchDash();
+      refetchCamp();
+    } catch (err: any) {
+      toast.error(err?.data?.message || err?.message || "Failed to sync reviews");
+    }
+  };
+
+  /* 3) Quick Actions & Customer Management Modal */
+  const router = useRouter();
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<AddMode>("SMS");
+
+  const openActionModal = (mode: AddMode) => {
+    if (!businessId) {
+      toast.error("Business profile not loaded yet. Please wait a moment.");
+      return;
+    }
+    setModalMode(mode);
+    setIsCustomerModalOpen(true);
+  };
 
   const business =
     (bizRes as ApiEnvelope<BusinessProfile> | undefined)?.data ?? meBusiness;
@@ -768,17 +819,28 @@ export default function ReviewDashboard() {
     <div className="min-h-screen w-full text-slate-900 dark:text-slate-100">
       <div>
         {/* Header */}
-        <header className="mb-6 sm:mb-8">
-          {meLoading ? (
-            <Skeleton className="h-8 w-64" />
-          ) : (
-            <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
-              {greeting()}, {businessName}
-            </h1>
-          )}
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Here&apos;s how your review growth is performing — {rangeLabel}.
-          </p>
+        <header className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            {meLoading ? (
+              <Skeleton className="h-8 w-64" />
+            ) : (
+              <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
+                {greeting()}, {businessName}
+              </h1>
+            )}
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Here&apos;s how your review growth is performing — {rangeLabel}.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleSyncReviews}
+            disabled={isSyncing}
+            className="inline-flex items-center gap-2 self-start rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1727] px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 sm:self-auto"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin text-blue-500" : ""}`} />
+            {isSyncing ? "Syncing Reviews..." : "Sync Google Reviews"}
+          </button>
         </header>
 
         {dashError && (
@@ -1055,7 +1117,11 @@ export default function ReviewDashboard() {
               </div>
             )}
 
-            <button className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard/customers-management")}
+              className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer"
+            >
               View Requests
               <ArrowRight className="h-4 w-4" />
             </button>
@@ -1068,17 +1134,29 @@ export default function ReviewDashboard() {
             </h2>
 
             <div className="mt-5 flex flex-col gap-3">
-              <button className="flex items-center gap-2.5 rounded-xl bg-blue-600 px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700">
+              <button
+                type="button"
+                onClick={() => openActionModal("SMS")}
+                className="flex items-center gap-2.5 rounded-xl bg-blue-600 px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 cursor-pointer"
+              >
                 <Send className="h-4 w-4" />
                 Send Review Request
               </button>
 
-              <button className="flex items-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800">
+              <button
+                type="button"
+                onClick={() => openActionModal("SMS")}
+                className="flex items-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+              >
                 <Zap className="h-4 w-4 text-slate-400 dark:text-slate-400" />
                 QuickSend
               </button>
 
-              <button className="flex items-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800">
+              <button
+                type="button"
+                onClick={() => openActionModal("BULK")}
+                className="flex items-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+              >
                 <Plus className="h-4 w-4 text-slate-400 dark:text-slate-400" />
                 Add Customer
               </button>
@@ -1093,6 +1171,23 @@ export default function ReviewDashboard() {
           </section>
         </div>
       </div>
+
+      {/* Review Request & Add Customer Modal */}
+      <AddCustomerModal
+        open={isCustomerModalOpen}
+        onClose={() => setIsCustomerModalOpen(false)}
+        businessId={businessId ?? ""}
+        smsRemaining={camp?.subscriptionSms?.remaining}
+        defaultChannel="SMS"
+        initialMode={modalMode}
+        onDone={(msg) => {
+          toast.success(msg);
+          refetchCamp();
+          refetchBiz();
+          refetchDash();
+        }}
+        onError={(err) => toast.error(err)}
+      />
     </div>
   );
 }
