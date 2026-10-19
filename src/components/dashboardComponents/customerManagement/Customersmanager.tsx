@@ -816,6 +816,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import {
   AlertTriangle,
   Check,
@@ -1184,6 +1185,12 @@ function Modal({
   maxWidth?: string;
   children: React.ReactNode;
 }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -1196,48 +1203,49 @@ function Modal({
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50 backdrop-blur-sm sm:items-center sm:p-4"
+      className="fixed inset-0 z-[99999] flex items-end justify-center bg-slate-950/60 backdrop-blur-sm sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-label={title}
       onClick={onClose}
     >
       <div
-        className={`flex max-h-[92vh] w-full flex-col rounded-t-3xl bg-white shadow-2xl sm:rounded-2xl ${maxWidth}`}
+        className={`flex max-h-[92vh] w-full flex-col rounded-t-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] shadow-2xl sm:rounded-2xl ${maxWidth}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-4 px-5 pb-3 pt-5 sm:px-6 sm:pt-6">
+        <div className="flex items-start justify-between gap-4 px-5 pb-3 pt-5 sm:px-6 sm:pt-6 border-b border-slate-100 dark:border-slate-800/80">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">{title}</h2>
             {description && (
-              <p className="mt-0.5 text-sm text-slate-500">{description}</p>
+              <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{description}</p>
             )}
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+            className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="overflow-y-auto px-5 pb-5 sm:px-6 sm:pb-6">
+        <div className="overflow-y-auto px-5 pb-5 sm:px-6 sm:pb-6 pt-4">
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
-const inputCls =
-  "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
+export const inputCls =
+  "w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-950";
 
-function Field({
+export function Field({
   label,
   htmlFor,
   hint,
@@ -1252,12 +1260,12 @@ function Field({
     <div>
       <label
         htmlFor={htmlFor}
-        className="mb-1.5 block text-sm font-medium text-slate-700"
+        className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
       >
         {label}
       </label>
       {children}
-      {hint && <p className="mt-1.5 text-xs text-slate-500">{hint}</p>}
+      {hint && <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">{hint}</p>}
     </div>
   );
 }
@@ -1266,14 +1274,15 @@ function Field({
 /*  Add Customer modal (Single SMS / Single Email / Bulk import)       */
 /* ------------------------------------------------------------------ */
 
-type AddMode = "SMS" | "EMAIL" | "BULK";
+export type AddMode = "SMS" | "EMAIL" | "BULK";
 
-interface AddCustomerModalProps {
+export interface AddCustomerModalProps {
   open: boolean;
   onClose: () => void;
   businessId: string;
   smsRemaining?: number;
   defaultChannel?: Channel;
+  initialMode?: AddMode;
   onDone: (message: string) => void;
   onError: (message: string) => void;
 }
@@ -1316,21 +1325,28 @@ function parseBulk(text: string, channel: "SMS" | "EMAIL") {
   return { rows, invalid };
 }
 
-function AddCustomerModal({
+export function AddCustomerModal({
   open,
   onClose,
   businessId,
   smsRemaining,
   defaultChannel,
+  initialMode,
   onDone,
   onError,
 }: AddCustomerModalProps) {
-  const [mode, setMode] = useState<AddMode>("SMS");
+  const [mode, setMode] = useState<AddMode>(initialMode || "SMS");
 
-  // Open on the business's preferred request channel (from settings)
+  // Open on requested mode or business's preferred channel
   useEffect(() => {
-    if (open) setMode(defaultChannel === "EMAIL" ? "EMAIL" : "SMS");
-  }, [open, defaultChannel]);
+    if (open) {
+      if (initialMode) {
+        setMode(initialMode);
+      } else {
+        setMode(defaultChannel === "EMAIL" ? "EMAIL" : "SMS");
+      }
+    }
+  }, [open, defaultChannel, initialMode]);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -1474,7 +1490,7 @@ function AddCustomerModal({
     >
       {/* Tabs */}
       <div
-        className="mb-5 grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1"
+        className="mb-5 grid grid-cols-3 gap-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 p-1"
         role="tablist"
       >
         {tabs.map((t) => (
@@ -1484,10 +1500,10 @@ function AddCustomerModal({
             role="tab"
             aria-selected={mode === t.key}
             onClick={() => switchMode(t.key)}
-            className={`flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-sm font-medium transition ${
+            className={`flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-sm font-medium transition cursor-pointer ${
               mode === t.key
-                ? "bg-white text-blue-700 shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
+                ? "bg-white dark:bg-blue-600 text-blue-700 dark:text-white shadow-sm"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
             }`}
           >
             {t.icon}
