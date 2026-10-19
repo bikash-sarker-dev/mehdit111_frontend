@@ -16,6 +16,8 @@ import {
   Clock,
   Sparkles,
   CheckCircle,
+  Headphones,
+  MessageSquare,
 } from "lucide-react";
 
 const OFFICES = [
@@ -320,15 +322,19 @@ export default function HelpSupport() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
         {/* Support Request Form */}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-[#0b1727] sm:p-8 lg:col-span-7">
-          <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-            <Sparkles className="h-5 w-5" />
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
-              Send a Support Message
-            </h2>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400 border border-blue-100 dark:border-blue-900/60 shadow-xs">
+              <Headphones className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
+                Send a Support Message
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Submit your message and we&apos;ll route it directly to the appropriate team member.
+              </p>
+            </div>
           </div>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            Submit your message and we&apos;ll route it directly to the appropriate team member.
-          </p>
 
           {submitted ? (
             <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-center dark:border-emerald-900/50 dark:bg-emerald-950/40">
