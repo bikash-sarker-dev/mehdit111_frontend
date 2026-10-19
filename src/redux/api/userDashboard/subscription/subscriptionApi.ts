@@ -19,7 +19,12 @@ export const subscriptionApi = baseApi.injectEndpoints({
     }),
 
     upgradeChangePlanCheckout: builder.mutation({
-      query: (payload: { businessId: string; plan: string }) => ({
+      query: (payload: {
+        businessId?: string;
+        plan: string;
+        currency?: string;
+        country?: string;
+      }) => ({
         url: "/subscription/create-checkout-session",
         method: "POST",
         body: payload,

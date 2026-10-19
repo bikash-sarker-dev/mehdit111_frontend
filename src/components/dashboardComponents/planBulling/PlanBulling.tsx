@@ -718,6 +718,12 @@ import {
 } from "@/redux/api/userDashboard/subscription/subscriptionApi";
 
 import { useGetMeProfileQuery } from "@/redux/api/getMe/getMeApi";
+import {
+  detectUserCountrySync,
+  detectUserCountryAsync,
+  getPlanPricing,
+  getCountryDetail,
+} from "@/utils/pricingCurrency";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                         */
@@ -926,6 +932,31 @@ export default function PlanAndBilling({
   const [showCancel, setShowCancel] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
+  /* ---------------- Multi-Currency & Location Detection ---------------- */
+  const businessCountry =
+    profileRes?.data?.business?.country ||
+    profileRes?.data?.businesses?.[0]?.country ||
+    (profileRes?.data as any)?.country;
+
+  const [selectedCountryCode, setSelectedCountryCode] = useState<string>(() =>
+    detectUserCountrySync(businessCountry)
+  );
+
+  useEffect(() => {
+    let alive = true;
+    detectUserCountryAsync(businessCountry).then((code) => {
+      if (alive && code) setSelectedCountryCode(code);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [businessCountry]);
+
+  const currentCountry = useMemo(
+    () => getCountryDetail(selectedCountryCode),
+    [selectedCountryCode]
+  );
+
   const [search, setSearch] = useState("");
   const [yearFilter, setYearFilter] = useState<"All" | string>("All");
 
@@ -1012,6 +1043,8 @@ export default function PlanAndBilling({
       const res = await upgradeChangePlanCheckout({
         businessId,
         plan: plan.plan,
+        currency: currentCountry.currency.toLowerCase(),
+        country: currentCountry.code,
       }).unwrap();
 
       const checkoutUrl: string | undefined = res?.data?.checkoutUrl;
@@ -1708,11 +1741,13 @@ export default function PlanAndBilling({
                 {selectedPlan.tagline}
               </p>
 
-              <div className="mt-5 flex items-baseline gap-1">
+              <div className="mt-5 flex items-baseline gap-1.5">
                 <span className="text-4xl font-bold">
-                  {currency(selectedPlan.priceMonthly, selectedPlan.currency)}
+                  {getPlanPricing(selectedPlan.plan, selectedCountryCode, selectedPlan.priceMonthly).formatted}
                 </span>
-                <span className="text-sm text-blue-100">/ month</span>
+                <span className="text-sm text-blue-100">
+                  / month {getPlanPricing(selectedPlan.plan, selectedCountryCode, selectedPlan.priceMonthly).currency}
+                </span>
               </div>
             </div>
 
@@ -1783,7 +1818,8 @@ export default function PlanAndBilling({
               <div className="mb-5 flex items-center justify-between border-t border-dashed border-slate-200 pt-4">
                 <span className="text-sm text-slate-500">Billed monthly</span>
                 <span className="text-lg font-bold text-slate-900">
-                  {currency(selectedPlan.priceMonthly, selectedPlan.currency)}
+                  {getPlanPricing(selectedPlan.plan, selectedCountryCode, selectedPlan.priceMonthly).formatted}{" "}
+                  {getPlanPricing(selectedPlan.plan, selectedCountryCode, selectedPlan.priceMonthly).currency}
                 </span>
               </div>
 
@@ -1989,12 +2025,12 @@ export default function PlanAndBilling({
                         )}
                       </div>
 
-                      <div className="mb-2 flex items-baseline gap-1">
+                      <div className="mb-2 flex items-baseline gap-1.5">
                         <span className="text-3xl font-extrabold">
-                          ${plan.priceMonthly}
+                          {getPlanPricing(plan.plan, selectedCountryCode, plan.priceMonthly).formatted}
                         </span>
                         <span className={isPopular ? "text-blue-100 text-xs" : "text-slate-500 dark:text-slate-400 text-xs"}>
-                          /month
+                          /month {getPlanPricing(plan.plan, selectedCountryCode, plan.priceMonthly).currency}
                         </span>
                       </div>
 

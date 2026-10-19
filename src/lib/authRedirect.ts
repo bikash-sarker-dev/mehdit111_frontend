@@ -55,6 +55,25 @@ export function getRedirectPath(user: AuthUser, accessToken: string): string {
 
   if (role === "admin") return ADMIN_DASHBOARD;
 
+  // Check URL redirect param or intended plan for seamless plan purchase
+  if (typeof window !== "undefined") {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const redirectUrl = params.get("redirect");
+      if (
+        redirectUrl &&
+        !redirectUrl.startsWith("//") &&
+        (redirectUrl.startsWith("/") || redirectUrl.startsWith("#"))
+      ) {
+        return redirectUrl;
+      }
+      const intendedPlan = sessionStorage.getItem("gmr_intended_plan");
+      if (intendedPlan) {
+        return "/#pricing";
+      }
+    } catch {}
+  }
+
   const hasBusiness =
     Array.isArray(user.businesses) && user.businesses.length > 0;
   return hasBusiness ? USER_DASHBOARD : ONBOARDING;
