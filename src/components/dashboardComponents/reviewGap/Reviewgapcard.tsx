@@ -633,30 +633,30 @@ const TONES: Record<
 > = {
   ahead: {
     Icon: ArrowUp,
-    box: "bg-emerald-50",
-    ring: "ring-emerald-200/70",
-    title: "text-emerald-800",
-    body: "text-emerald-700/80",
+    box: "bg-emerald-50 dark:bg-emerald-950/30",
+    ring: "ring-emerald-200/70 dark:ring-emerald-800/60",
+    title: "text-emerald-800 dark:text-emerald-300",
+    body: "text-emerald-700/80 dark:text-emerald-400/90",
     iconWrap: "bg-emerald-500 text-white",
-    number: "text-emerald-600",
+    number: "text-emerald-600 dark:text-emerald-400",
   },
   behind: {
     Icon: ArrowDown,
-    box: "bg-rose-50",
-    ring: "ring-rose-200/70",
-    title: "text-rose-800",
-    body: "text-rose-700/80",
+    box: "bg-rose-50 dark:bg-rose-950/30",
+    ring: "ring-rose-200/70 dark:ring-rose-800/60",
+    title: "text-rose-800 dark:text-rose-300",
+    body: "text-rose-700/80 dark:text-rose-400/90",
     iconWrap: "bg-rose-500 text-white",
-    number: "text-rose-600",
+    number: "text-rose-600 dark:text-rose-400",
   },
   even: {
     Icon: Minus,
-    box: "bg-slate-50",
-    ring: "ring-slate-200",
-    title: "text-slate-800",
-    body: "text-slate-600",
+    box: "bg-slate-50 dark:bg-slate-900/60",
+    ring: "ring-slate-200 dark:ring-slate-800",
+    title: "text-slate-800 dark:text-white",
+    body: "text-slate-600 dark:text-slate-300",
     iconWrap: "bg-slate-500 text-white",
-    number: "text-slate-700",
+    number: "text-slate-700 dark:text-slate-300",
   },
 };
 
@@ -825,19 +825,19 @@ function VersusRow({
     `${Math.min(100, (Math.abs(v ?? 0) / max) * 100)}%`;
 
   return (
-    <div className="rounded-xl bg-slate-50 p-4">
+    <div className="rounded-xl bg-slate-50 dark:bg-slate-900/60 p-4 border border-slate-100 dark:border-slate-800">
       <div className="flex items-baseline justify-between gap-3">
-        <p className="text-sm font-semibold text-slate-900">{label}</p>
-        <p className="text-xs text-slate-400">{hint}</p>
+        <p className="text-sm font-semibold text-slate-900 dark:text-white">{label}</p>
+        <p className="text-xs text-slate-400 dark:text-slate-400">{hint}</p>
       </div>
 
       <div className="mt-3 space-y-2.5">
         <div>
           <div className="mb-1 flex items-center justify-between text-xs">
-            <span className="font-medium text-slate-600">{yourLabel}</span>
-            <span className="font-bold text-blue-600">{youText}</span>
+            <span className="font-medium text-slate-600 dark:text-slate-300">{yourLabel}</span>
+            <span className="font-bold text-blue-600 dark:text-blue-400">{youText}</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-slate-200/70">
+          <div className="h-2 overflow-hidden rounded-full bg-slate-200/70 dark:bg-slate-800">
             <div
               className="h-full rounded-full bg-blue-600 transition-[width] duration-700"
               style={{ width: pct(you) }}
@@ -846,12 +846,12 @@ function VersusRow({
         </div>
         <div>
           <div className="mb-1 flex items-center justify-between text-xs">
-            <span className="font-medium text-slate-500">
+            <span className="font-medium text-slate-500 dark:text-slate-400">
               {competitorLabel}
             </span>
-            <span className="font-bold text-slate-700">{compText}</span>
+            <span className="font-bold text-slate-700 dark:text-slate-200">{compText}</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-slate-200/70">
+          <div className="h-2 overflow-hidden rounded-full bg-slate-200/70 dark:bg-slate-800">
             <div
               className="h-full rounded-full bg-slate-400 transition-[width] duration-700"
               style={{ width: pct(comp) }}
@@ -867,19 +867,19 @@ function CardSkeleton() {
   return (
     <div className="flex w-full animate-pulse flex-col gap-5 sm:gap-6">
       <div>
-        <div className="h-7 w-40 rounded bg-slate-200" />
-        <div className="mt-2 h-4 w-72 max-w-full rounded bg-slate-100" />
+        <div className="h-7 w-40 rounded bg-slate-200 dark:bg-slate-700" />
+        <div className="mt-2 h-4 w-72 max-w-full rounded bg-slate-100 dark:bg-slate-800" />
       </div>
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-6">
-        <div className="h-24 rounded-xl bg-slate-100" />
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-4 dark:border-slate-800 dark:bg-[#0b1727] sm:p-6">
+        <div className="h-24 rounded-xl bg-slate-100 dark:bg-slate-800/70" />
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-28 rounded-xl bg-slate-100" />
+            <div key={i} className="h-28 rounded-xl bg-slate-100 dark:bg-slate-800/70" />
           ))}
         </div>
       </div>
-      <div className="h-72 rounded-2xl border border-slate-200/80 bg-white" />
-      <div className="h-64 rounded-2xl border border-slate-200/80 bg-white" />
+      <div className="h-72 rounded-2xl border border-slate-200/80 bg-white dark:border-slate-800 dark:bg-[#0b1727]" />
+      <div className="h-64 rounded-2xl border border-slate-200/80 bg-white dark:border-slate-800 dark:bg-[#0b1727]" />
     </div>
   );
 }
@@ -1004,20 +1004,20 @@ export default function ReviewGapCard({
         {/* Header */}
         <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+            <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
               {title}
             </h1>
-            <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
           </div>
           {data.business_name && (
-            <p className="text-sm font-medium text-slate-600">
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
               {data.business_name}
             </p>
           )}
         </div>
 
         {/* Summary */}
-        <section className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6">
+        <section className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0b1727] p-4 shadow-sm sm:p-6">
           <div
             className={`flex flex-col gap-5 rounded-2xl p-5 ring-1 sm:flex-row sm:items-center sm:justify-between sm:p-6 ${t.box} ${t.ring}`}
           >
@@ -1043,15 +1043,15 @@ export default function ReviewGapCard({
               >
                 {gapDisplay}
               </p>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 Growth vs. competitor average
               </p>
             </div>
           </div>
 
           {diffText && (
-            <p className="mt-4 text-sm text-slate-600">
-              <span className="font-semibold text-slate-900">
+            <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
+              <span className="font-semibold text-slate-900 dark:text-white">
                 {diff < 0 ? "Review count gap:" : "Review count lead:"}
               </span>{" "}
               {diffText}.
@@ -1098,7 +1098,11 @@ export default function ReviewGapCard({
                   ? `${fmtRating(m.your_rating)} ★`
                   : "No rating"
               }
-              compText={`${fmtRating(m.competitor_avg_rating)} ★`}
+              compText={
+                typeof m.competitor_avg_rating === "number" && m.competitor_avg_rating > 0
+                  ? `${fmtRating(m.competitor_avg_rating)} ★`
+                  : "No rating"
+              }
               you={m.your_rating}
               comp={m.competitor_avg_rating}
               yourLabel={yourLabel}
@@ -1108,18 +1112,18 @@ export default function ReviewGapCard({
         </section>
 
         {/* Chart */}
-        <section className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6">
+        <section className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0b1727] p-4 shadow-sm sm:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-base font-bold text-slate-900 sm:text-lg">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white sm:text-lg">
                 Review Growth Comparison
               </h2>
-              <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
                 Monthly growth rate — {yourLabel} vs. {competitorLabel}
               </p>
             </div>
 
-            <div className="flex items-center gap-4 text-xs text-slate-600 sm:text-sm">
+            <div className="flex items-center gap-4 text-xs text-slate-600 dark:text-slate-300 sm:text-sm">
               <span className="flex items-center gap-1.5">
                 <span className="inline-block h-0.5 w-4 rounded bg-blue-600" />
                 {yourLabel}
@@ -1143,7 +1147,7 @@ export default function ReviewGapCard({
                       <stop
                         offset="0%"
                         stopColor="#2563eb"
-                        stopOpacity={0.22}
+                        stopOpacity={0.25}
                       />
                       <stop offset="100%" stopColor="#2563eb" stopOpacity={0} />
                     </linearGradient>
@@ -1151,7 +1155,7 @@ export default function ReviewGapCard({
                       <stop
                         offset="0%"
                         stopColor="#94a3b8"
-                        stopOpacity={0.18}
+                        stopOpacity={0.2}
                       />
                       <stop offset="100%" stopColor="#94a3b8" stopOpacity={0} />
                     </linearGradient>
@@ -1159,7 +1163,8 @@ export default function ReviewGapCard({
                   <CartesianGrid
                     vertical={false}
                     strokeDasharray="3 3"
-                    stroke="#e2e8f0"
+                    stroke="#334155"
+                    strokeOpacity={0.25}
                   />
                   <XAxis
                     dataKey="label"
@@ -1177,7 +1182,7 @@ export default function ReviewGapCard({
                     domain={[0, Math.max(Math.ceil(chartMax + 0.5), 3)]}
                   />
                   <Tooltip
-                    cursor={{ stroke: "#cbd5e1", strokeDasharray: "3 3" }}
+                    cursor={{ stroke: "#64748b", strokeDasharray: "3 3" }}
                     content={
                       <ChartTooltip
                         yourLabel={yourLabel}
@@ -1208,7 +1213,7 @@ export default function ReviewGapCard({
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="mt-4 flex h-40 items-center justify-center rounded-xl bg-slate-50 text-sm text-slate-500">
+            <div className="mt-4 flex h-40 items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-900/60 text-sm text-slate-500 dark:text-slate-400">
               No growth history available yet.
             </div>
           )}
@@ -1216,18 +1221,18 @@ export default function ReviewGapCard({
 
         {/* AI strategic insights */}
         {analysis && (
-          <section className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6">
+          <section className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0b1727] p-4 shadow-sm sm:p-6">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400">
                   <Sparkles className="h-5 w-5" />
                 </span>
                 <div>
-                  <h2 className="text-base font-bold text-slate-900 sm:text-lg">
+                  <h2 className="text-base font-bold text-slate-900 dark:text-white sm:text-lg">
                     AI Strategic Insights
                   </h2>
                   {analysis.title && (
-                    <p className="text-xs text-slate-500 sm:text-sm">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
                       {analysis.title.replace(
                         /^Google Review Gap Analysis:\s*/i,
                         "",
@@ -1237,17 +1242,17 @@ export default function ReviewGapCard({
                 </div>
               </div>
               {data.ai_strategic_insights?.model && (
-                <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-500">
+                <span className="shrink-0 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
                   {data.ai_strategic_insights.model}
                 </span>
               )}
             </div>
 
-            <div className="mt-5 divide-y divide-slate-100">
+            <div className="mt-5 divide-y divide-slate-100 dark:divide-slate-800">
               {analysis.sections.map((section, i) => (
                 <div key={i} className="py-5 first:pt-0 last:pb-0">
                   {section.heading && (
-                    <h3 className="text-sm font-bold text-slate-900 sm:text-base">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white sm:text-base">
                       {section.heading}
                     </h3>
                   )}
@@ -1257,7 +1262,7 @@ export default function ReviewGapCard({
                       b.type === "p" ? (
                         <p
                           key={j}
-                          className="max-w-prose text-sm leading-relaxed text-slate-600"
+                          className="max-w-prose text-sm leading-relaxed text-slate-600 dark:text-slate-300"
                         >
                           <Inline text={b.text} />
                         </p>
@@ -1266,9 +1271,9 @@ export default function ReviewGapCard({
                           {b.items.map((item, k) => (
                             <li
                               key={k}
-                              className="flex gap-3 rounded-xl bg-slate-50 p-3.5 text-sm leading-relaxed text-slate-600"
+                              className="flex gap-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 p-3.5 text-sm leading-relaxed text-slate-600 dark:text-slate-300"
                             >
-                              <Star className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
+                              <Star className="mt-0.5 h-4 w-4 shrink-0 text-blue-500 dark:text-blue-400" />
                               <span>
                                 <Inline text={item} />
                               </span>
@@ -1283,9 +1288,9 @@ export default function ReviewGapCard({
             </div>
 
             {analysis.callout && (
-              <div className="mt-5 flex gap-3 rounded-xl bg-blue-50 p-4 ring-1 ring-blue-100">
-                <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
-                <p className="text-sm leading-relaxed text-blue-900">
+              <div className="mt-5 flex gap-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 p-4 ring-1 ring-blue-100 dark:ring-blue-900/50">
+                <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
+                <p className="text-sm leading-relaxed text-blue-900 dark:text-blue-200">
                   <span className="font-semibold">Bottom line: </span>
                   <Inline text={analysis.callout} />
                 </p>

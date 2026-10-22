@@ -1,166 +1,77 @@
-import type { ReactNode } from "react";
+import Link from "next/link";
+import { MapPin, Phone, Mail, Building2 } from "lucide-react";
+
+interface FooterLink {
+  label: string;
+  href: string;
+}
 
 interface FooterColumn {
   title: string;
-  links: string[];
-}
-
-interface ContactItem {
-  label: string;
-  icon: ReactNode;
-  content: ReactNode;
+  links: FooterLink[];
 }
 
 const columns: FooterColumn[] = [
   {
     title: "Navigate",
-    links: ["How It Works", "Features", "Pricing", "FAQ"],
+    links: [
+      { label: "How It Works", href: "/#how-it-works" },
+      { label: "Features", href: "/#features" },
+      { label: "Pricing", href: "/#pricing" },
+      { label: "FAQ", href: "/#faq" },
+    ],
   },
   {
     title: "Product",
     links: [
-      "Automated Review Requests",
-      "QuickSend",
-      "NFC",
-      "Review Gap",
-      "AI Growth Report",
+      { label: "Automated Review Requests", href: "/#features" },
+      { label: "QuickSend", href: "/#quicksend" },
+      { label: "NFC", href: "/#how-it-works" },
+      { label: "Review Gap", href: "/#review-gap" },
+      { label: "AI Growth Report", href: "/#how-it-works" },
     ],
   },
   {
     title: "Account",
-    links: ["Log In", "Get Started"],
+    links: [
+      { label: "Log In", href: "/signIn" },
+      { label: "Get Started", href: "/signup" },
+    ],
   },
   {
     title: "Legal",
-    links: ["Privacy Policy", "Terms of Service"],
-  },
-];
-
-const COMPANY = {
-  legalName: "Nexora Automation Inc.",
-  addressLines: [
-    "250 Brookside Terrace NW",
-    "Edmonton, Alberta T6H 4J6",
-    "Canada",
-  ],
-  mapUrl:
-    "https://www.google.com/maps/search/?api=1&query=250+Brookside+Terrace+NW+Edmonton+Alberta+T6H+4J6+Canada",
-  phoneDisplay: "+1 (416) 917-0776",
-  phoneHref: "tel:+14169170776",
-  email: "mehdi@growmorereviews.com",
-};
-
-const iconClass = "h-5 w-5";
-
-const MapPinIcon = (
-  <svg
-    className={iconClass}
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={1.75}
-    aria-hidden="true"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M12 21s7-5.686 7-11a7 7 0 10-14 0c0 5.314 7 11 7 11z"
-    />
-    <circle cx="12" cy="10" r="2.5" />
-  </svg>
-);
-
-const PhoneIcon = (
-  <svg
-    className={iconClass}
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={1.75}
-    aria-hidden="true"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M3 5a2 2 0 012-2h2.28a1 1 0 01.95.68l1.5 4.5a1 1 0 01-.5 1.2l-1.8.9a11 11 0 005.52 5.52l.9-1.8a1 1 0 011.2-.5l4.5 1.5a1 1 0 01.68.95V19a2 2 0 01-2 2h-1C9.72 21 3 14.28 3 6V5z"
-    />
-  </svg>
-);
-
-const MailIcon = (
-  <svg
-    className={iconClass}
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={1.75}
-    aria-hidden="true"
-  >
-    <rect x="3" y="5" width="18" height="14" rx="2" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 7l9 6 9-6" />
-  </svg>
-);
-
-const linkClass =
-  "transition-colors hover:text-white focus-visible:text-white focus-visible:outline-none focus-visible:underline";
-
-const contactItems: ContactItem[] = [
-  {
-    label: "Registered Address",
-    icon: MapPinIcon,
-    content: (
-      <a
-        href={COMPANY.mapUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`not-italic ${linkClass}`}
-      >
-        {COMPANY.addressLines.map((line) => (
-          <span key={line} className="block">
-            {line}
-          </span>
-        ))}
-      </a>
-    ),
-  },
-  {
-    label: "Phone",
-    icon: PhoneIcon,
-    content: (
-      <a href={COMPANY.phoneHref} className={linkClass}>
-        {COMPANY.phoneDisplay}
-      </a>
-    ),
-  },
-  {
-    label: "Email",
-    icon: MailIcon,
-    content: (
-      <a href={`mailto:${COMPANY.email}`} className={`break-all ${linkClass}`}>
-        {COMPANY.email}
-      </a>
-    ),
+    links: [
+      { label: "Privacy Policy", href: "/privacy-policy" },
+      { label: "Terms of Service", href: "/terms-of-service" },
+    ],
   },
 ];
 
 export default function Footer() {
-  const year = new Date().getFullYear();
-
   return (
-    <footer className="bg-slate-900">
+    <footer className="bg-slate-900 text-slate-300">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        {/* Navigation Grid */}
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-6 lg:gap-8">
-          {/* Logo + tagline */}
+          {/* Logo + Brand Statement */}
           <div className="lg:col-span-2">
-            {/* Replace the src below with your own logo image */}
-            <img
-              src="/images/logo/logo.png"
-              alt="Review Growth AI"
-              className="h-14 w-auto object-contain"
-            />
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-400">
-              Review Growth + Reputation Management + Competitor Intelligence
-              for local businesses.
+            <Link
+              href="/"
+              className="inline-block transition-opacity hover:opacity-90"
+            >
+              <img
+                src="/images/logo/logo.png"
+                alt="Grow More Reviews"
+                className="h-14 w-auto object-contain"
+              />
+            </Link>
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-400">
+              Grow More Reviews is a product and operating brand of{" "}
+              <strong className="text-slate-300">Nexora Automation Inc.</strong>,
+              an Alberta, Canada corporation.
+            </p>
+            <p className="mt-2 text-xs text-slate-500">
+              Review Growth · Reputation Management · Competitor Intelligence
             </p>
           </div>
 
@@ -171,13 +82,13 @@ export default function Footer() {
               </h3>
               <ul className="mt-4 space-y-3">
                 {column.links.map((link) => (
-                  <li key={link}>
-                    <a
-                      href="#"
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
                       className="text-sm text-slate-300 transition-colors hover:text-white"
                     >
-                      {link}
-                    </a>
+                      {link.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -185,45 +96,183 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Contact / company information */}
+        {/* Contact & Offices Information */}
         <div className="mt-12 border-t border-slate-800 pt-10">
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
             <h3 className="text-xs font-semibold tracking-wide text-slate-500">
-              CONTACT US
+              CONTACT & OFFICE LOCATIONS
             </h3>
-            <p className="text-sm font-medium text-slate-300">
-              {COMPANY.legalName}
+            <p className="text-xs text-slate-400">
+              Customer Service:{" "}
+              <a
+                href="mailto:mehdi@growmorereviews.com"
+                className="text-blue-400 hover:underline"
+              >
+                mehdi@growmorereviews.com
+              </a>{" "}
+              | Technical Support:{" "}
+              <a
+                href="mailto:support@growmorereviews.com"
+                className="text-blue-400 hover:underline"
+              >
+                support@growmorereviews.com
+              </a>
             </p>
           </div>
 
-          <address className="mt-6 grid grid-cols-1 gap-4 not-italic sm:grid-cols-2 lg:grid-cols-3">
-            {contactItems.map((item) => (
-              <div
-                key={item.label}
-                className="flex items-start gap-4 rounded-xl border border-slate-800 bg-slate-800/40 p-5 transition-colors hover:border-slate-700 hover:bg-slate-800/70"
-              >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-slate-300 ring-1 ring-slate-700">
-                  {item.icon}
+          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* Edmonton Office (HQ) */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-800/40 p-6 transition-colors hover:border-slate-700 hover:bg-slate-800/60">
+              <div className="flex items-center justify-between border-b border-slate-700/60 pb-3">
+                <span className="inline-flex items-center gap-2 text-sm font-bold text-white">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600/20 text-blue-400 ring-1 ring-blue-500/30">
+                    <Building2 className="h-4 w-4" />
+                  </span>
+                  Edmonton Office (HQ)
                 </span>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold tracking-wide text-slate-500">
-                    {item.label.toUpperCase()}
-                  </p>
-                  <div className="mt-1.5 text-sm leading-relaxed text-slate-300">
-                    {item.content}
+                <span className="rounded-full border border-slate-700 bg-slate-800 px-2.5 py-0.5 text-[11px] font-medium text-slate-400">
+                  Alberta
+                </span>
+              </div>
+
+              <div className="mt-4 space-y-3.5 text-sm text-slate-300">
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=First+Edmonton+Place+10665+Jasper+Ave+14th+Floor+Edmonton+AB+T5J+3S9"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-2 text-slate-300 transition-colors hover:text-white"
+                >
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                  <span>
+                    First Edmonton Place, 10665 Jasper Ave, 14th Floor,
+                    <br />
+                    Edmonton, AB T5J 3S9, Canada
+                  </span>
+                </a>
+
+                <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-800/80 pt-3 text-xs text-slate-300">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Phone className="h-3.5 w-3.5 text-blue-400" />
+                    Tel:{" "}
+                    <a
+                      href="tel:+17808519353"
+                      className="font-medium text-slate-200 hover:text-white"
+                    >
+                      (780) 851-9353
+                    </a>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Phone className="h-3.5 w-3.5 text-blue-400" />
+                    Tel:{" "}
+                    <a
+                      href="tel:+14169170776"
+                      className="font-medium text-slate-200 hover:text-white"
+                    >
+                      416 917 0776
+                    </a>
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-800/80 pt-3 text-xs">
+                  <div className="inline-flex items-center gap-1.5">
+                    <Mail className="h-3.5 w-3.5 text-slate-400" />
+                    <span className="text-slate-400">Customer Service:</span>
+                    <a
+                      href="mailto:mehdi@growmorereviews.com"
+                      className="font-medium text-blue-400 hover:underline"
+                    >
+                      mehdi@growmorereviews.com
+                    </a>
+                  </div>
+                  <div className="inline-flex items-center gap-1.5">
+                    <Mail className="h-3.5 w-3.5 text-slate-400" />
+                    <span className="text-slate-400">Technical Support:</span>
+                    <a
+                      href="mailto:support@growmorereviews.com"
+                      className="font-medium text-blue-400 hover:underline"
+                    >
+                      support@growmorereviews.com
+                    </a>
                   </div>
                 </div>
               </div>
-            ))}
-          </address>
+            </div>
+
+            {/* Toronto Office */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-800/40 p-6 transition-colors hover:border-slate-700 hover:bg-slate-800/60">
+              <div className="flex items-center justify-between border-b border-slate-700/60 pb-3">
+                <span className="inline-flex items-center gap-2 text-sm font-bold text-white">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600/20 text-blue-400 ring-1 ring-blue-500/30">
+                    <Building2 className="h-4 w-4" />
+                  </span>
+                  Toronto Office
+                </span>
+                <span className="rounded-full border border-slate-700 bg-slate-800 px-2.5 py-0.5 text-[11px] font-medium text-slate-400">
+                  Ontario
+                </span>
+              </div>
+
+              <div className="mt-4 space-y-3.5 text-sm text-slate-300">
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=4711+Yonge+Street+10th+Floor+Toronto+ON+M2N+6K8+Canada"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-2 text-slate-300 transition-colors hover:text-white"
+                >
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                  <span>
+                    4711 Yonge Street 10th Floor,
+                    <br />
+                    Toronto, ON, M2N 6K8, CAN
+                  </span>
+                </a>
+
+                <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-800/80 pt-3 text-xs text-slate-300">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Phone className="h-3.5 w-3.5 text-blue-400" />
+                    Tel:{" "}
+                    <a
+                      href="tel:+14169170776"
+                      className="font-medium text-slate-200 hover:text-white"
+                    >
+                      416 917 0776
+                    </a>
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-800/80 pt-3 text-xs">
+                  <div className="inline-flex items-center gap-1.5">
+                    <Mail className="h-3.5 w-3.5 text-slate-400" />
+                    <span className="text-slate-400">Customer Service:</span>
+                    <a
+                      href="mailto:mehdi@growmorereviews.com"
+                      className="font-medium text-blue-400 hover:underline"
+                    >
+                      mehdi@growmorereviews.com
+                    </a>
+                  </div>
+                  <div className="inline-flex items-center gap-1.5">
+                    <Mail className="h-3.5 w-3.5 text-slate-400" />
+                    <span className="text-slate-400">Technical Support:</span>
+                    <a
+                      href="mailto:support@growmorereviews.com"
+                      className="font-medium text-blue-400 hover:underline"
+                    >
+                      support@growmorereviews.com
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-800 pt-8 text-xs text-slate-500 sm:flex-row">
-          <p>
-            © {year} {COMPANY.legalName} All rights reserved.
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-800 pt-8 text-xs text-slate-400 sm:flex-row">
+          <p>© 2026 Nexora Automation Inc. | Grow More Reviews | All Rights Reserved</p>
+          <p className="text-slate-500">
+            Grow More Reviews is a product and operating brand of Nexora Automation Inc.
           </p>
-          <p>Review Growth · Reputation Management · Competitor Intelligence</p>
         </div>
       </div>
     </footer>

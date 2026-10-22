@@ -816,6 +816,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import {
   AlertTriangle,
   Check,
@@ -834,6 +835,7 @@ import {
   RefreshCw,
   Search,
   Send,
+  Sparkles,
   Star,
   Trash2,
   Upload,
@@ -851,6 +853,7 @@ import {
   useGetAllCustomerQuery,
   useGetCustomerStatsQuery,
   useResendRequestCustomerMutation,
+  useGenerateAiMessageMutation,
 } from "@/redux/api/userDashboard/customer/customerApi";
 // ⚠️ Adjust this import path to wherever your profile API lives
 import { useGetMeProfileQuery } from "@/redux/api/getMe/getMeApi";
@@ -926,12 +929,12 @@ const DEFAULT_MESSAGE =
   "Thank you for visiting! We'd love your feedback. Would you mind leaving us a quick review?";
 
 const STATUS_STYLE: Record<InviteStatus, string> = {
-  PENDING: "bg-slate-100 text-slate-600 ring-slate-200",
-  SENT: "bg-blue-50 text-blue-700 ring-blue-200",
-  DELIVERED: "bg-sky-50 text-sky-700 ring-sky-200",
-  CLICKED: "bg-amber-50 text-amber-700 ring-amber-200",
-  REVIEWED: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  FAILED: "bg-red-50 text-red-700 ring-red-200",
+  PENDING: "bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700",
+  SENT: "bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-800",
+  DELIVERED: "bg-sky-50 text-sky-700 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-800",
+  CLICKED: "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800",
+  REVIEWED: "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-800",
+  FAILED: "bg-red-50 text-red-700 ring-red-200 dark:bg-red-950/40 dark:text-red-300 dark:ring-red-800",
 };
 
 const STATUS_DOT: Record<InviteStatus, string> = {
@@ -1182,6 +1185,12 @@ function Modal({
   maxWidth?: string;
   children: React.ReactNode;
 }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -1194,48 +1203,49 @@ function Modal({
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50 backdrop-blur-sm sm:items-center sm:p-4"
+      className="fixed inset-0 z-[99999] flex items-end justify-center bg-slate-950/60 backdrop-blur-sm sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-label={title}
       onClick={onClose}
     >
       <div
-        className={`flex max-h-[92vh] w-full flex-col rounded-t-3xl bg-white shadow-2xl sm:rounded-2xl ${maxWidth}`}
+        className={`flex max-h-[92vh] w-full flex-col rounded-t-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] shadow-2xl sm:rounded-2xl ${maxWidth}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-4 px-5 pb-3 pt-5 sm:px-6 sm:pt-6">
+        <div className="flex items-start justify-between gap-4 px-5 pb-3 pt-5 sm:px-6 sm:pt-6 border-b border-slate-100 dark:border-slate-800/80">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">{title}</h2>
             {description && (
-              <p className="mt-0.5 text-sm text-slate-500">{description}</p>
+              <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{description}</p>
             )}
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+            className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="overflow-y-auto px-5 pb-5 sm:px-6 sm:pb-6">
+        <div className="overflow-y-auto px-5 pb-5 sm:px-6 sm:pb-6 pt-4">
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
-const inputCls =
-  "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
+export const inputCls =
+  "w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-950";
 
-function Field({
+export function Field({
   label,
   htmlFor,
   hint,
@@ -1250,12 +1260,12 @@ function Field({
     <div>
       <label
         htmlFor={htmlFor}
-        className="mb-1.5 block text-sm font-medium text-slate-700"
+        className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
       >
         {label}
       </label>
       {children}
-      {hint && <p className="mt-1.5 text-xs text-slate-500">{hint}</p>}
+      {hint && <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">{hint}</p>}
     </div>
   );
 }
@@ -1264,14 +1274,15 @@ function Field({
 /*  Add Customer modal (Single SMS / Single Email / Bulk import)       */
 /* ------------------------------------------------------------------ */
 
-type AddMode = "SMS" | "EMAIL" | "BULK";
+export type AddMode = "SMS" | "EMAIL" | "BULK";
 
-interface AddCustomerModalProps {
+export interface AddCustomerModalProps {
   open: boolean;
   onClose: () => void;
   businessId: string;
   smsRemaining?: number;
   defaultChannel?: Channel;
+  initialMode?: AddMode;
   onDone: (message: string) => void;
   onError: (message: string) => void;
 }
@@ -1314,21 +1325,28 @@ function parseBulk(text: string, channel: "SMS" | "EMAIL") {
   return { rows, invalid };
 }
 
-function AddCustomerModal({
+export function AddCustomerModal({
   open,
   onClose,
   businessId,
   smsRemaining,
   defaultChannel,
+  initialMode,
   onDone,
   onError,
 }: AddCustomerModalProps) {
-  const [mode, setMode] = useState<AddMode>("SMS");
+  const [mode, setMode] = useState<AddMode>(initialMode || "SMS");
 
-  // Open on the business's preferred request channel (from settings)
+  // Open on requested mode or business's preferred channel
   useEffect(() => {
-    if (open) setMode(defaultChannel === "EMAIL" ? "EMAIL" : "SMS");
-  }, [open, defaultChannel]);
+    if (open) {
+      if (initialMode) {
+        setMode(initialMode);
+      } else {
+        setMode(defaultChannel === "EMAIL" ? "EMAIL" : "SMS");
+      }
+    }
+  }, [open, defaultChannel, initialMode]);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -1342,7 +1360,31 @@ function AddCustomerModal({
   const [addEmail, { isLoading: emailLoading }] = useAddCustomerEmailMutation();
   const [bulkImport, { isLoading: bulkLoading }] =
     useBulkImportCustomersMutation();
+  const [generateAiMsg, { isLoading: isGeneratingAi }] =
+    useGenerateAiMessageMutation();
   const busy = smsLoading || emailLoading || bulkLoading;
+
+  const handleGenerateAiMessage = async () => {
+    try {
+      const channel = mode === "BULK" ? bulkChannel : mode;
+      const res = await generateAiMsg({
+        businessId,
+        customerName: name.trim() || undefined,
+        channel,
+      }).unwrap();
+
+      const aiText =
+        res?.data?.generated_message ||
+        res?.data?.message ||
+        res?.generated_message;
+
+      if (aiText && typeof aiText === "string") {
+        setMessage(aiText);
+      }
+    } catch (err: any) {
+      console.warn("AI generation error:", err);
+    }
+  };
 
   const parsed = useMemo(
     () => parseBulk(bulkText, bulkChannel),
@@ -1448,7 +1490,7 @@ function AddCustomerModal({
     >
       {/* Tabs */}
       <div
-        className="mb-5 grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1"
+        className="mb-5 grid grid-cols-3 gap-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 p-1"
         role="tablist"
       >
         {tabs.map((t) => (
@@ -1458,10 +1500,10 @@ function AddCustomerModal({
             role="tab"
             aria-selected={mode === t.key}
             onClick={() => switchMode(t.key)}
-            className={`flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-sm font-medium transition ${
+            className={`flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-sm font-medium transition cursor-pointer ${
               mode === t.key
-                ? "bg-white text-blue-700 shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
+                ? "bg-white dark:bg-blue-600 text-blue-700 dark:text-white shadow-sm"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
             }`}
           >
             {t.icon}
@@ -1595,11 +1637,21 @@ function AddCustomerModal({
           </>
         )}
 
-        <Field
-          label="Message"
-          htmlFor="c-msg"
-          hint={`${message.length}/320 characters`}
-        >
+        <div>
+          <div className="mb-1.5 flex items-center justify-between">
+            <label htmlFor="c-msg" className="text-sm font-medium text-slate-700 dark:text-slate-200">
+              Message
+            </label>
+            <button
+              type="button"
+              onClick={handleGenerateAiMessage}
+              disabled={isGeneratingAi}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 dark:border-indigo-800/60 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:text-blue-300 hover:border-blue-400 transition-all shadow-xs disabled:opacity-60"
+            >
+              <Sparkles className={`h-3.5 w-3.5 text-blue-600 ${isGeneratingAi ? "animate-spin" : ""}`} />
+              <span>{isGeneratingAi ? "Generating AI Message..." : "✨ Write with AI"}</span>
+            </button>
+          </div>
           <textarea
             id="c-msg"
             rows={3}
@@ -1608,7 +1660,10 @@ function AddCustomerModal({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
           />
-        </Field>
+          <p className="mt-1 text-right text-xs text-slate-400">
+            {message.length}/320 characters
+          </p>
+        </div>
 
         {smsLow && (
           <p className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">
@@ -1825,13 +1880,13 @@ function StatCard({
   tone?: "blue" | "amber" | "emerald" | "red";
 }) {
   const tones = {
-    blue: "bg-blue-600 shadow-blue-200",
-    amber: "bg-amber-500 shadow-amber-200",
-    emerald: "bg-emerald-600 shadow-emerald-200",
-    red: "bg-red-500 shadow-red-200",
+    blue: "bg-blue-600 shadow-blue-200 dark:shadow-none",
+    amber: "bg-amber-500 shadow-amber-200 dark:shadow-none",
+    emerald: "bg-emerald-600 shadow-emerald-200 dark:shadow-none",
+    red: "bg-red-500 shadow-red-200 dark:shadow-none",
   };
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1727] p-4 shadow-sm sm:p-5">
       <div className="flex items-start justify-between gap-2">
         <div
           className={`flex h-9 w-9 items-center justify-center rounded-xl text-white shadow-sm ${tones[tone]}`}
@@ -1839,19 +1894,19 @@ function StatCard({
           {icon}
         </div>
         {sub && !loading && (
-          <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-600">
+          <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-1 text-[11px] font-medium text-slate-600 dark:text-slate-300">
             {sub}
           </span>
         )}
       </div>
       {loading ? (
-        <div className="mt-4 h-8 w-16 animate-pulse rounded-lg bg-slate-100" />
+        <div className="mt-4 h-8 w-16 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />
       ) : (
-        <div className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 sm:text-[28px]">
+        <div className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-[28px]">
           {value}
         </div>
       )}
-      <div className="mt-1 text-sm text-slate-500">{label}</div>
+      <div className="mt-1 text-sm text-slate-500 dark:text-slate-400">{label}</div>
     </div>
   );
 }
@@ -1870,15 +1925,17 @@ function QuotaCard({
     : 0;
   const warn = pct >= 90;
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1727] p-4 shadow-sm sm:p-5">
       <div className="flex items-start justify-between">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800 text-white shadow-sm shadow-slate-300">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800 dark:bg-slate-700 text-white shadow-sm shadow-slate-300 dark:shadow-none">
           <MessageSquare className="h-4 w-4" />
         </div>
         {!loading && limit != null && (
           <span
             className={`rounded-full px-2 py-1 text-[11px] font-medium ${
-              warn ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-600"
+              warn
+                ? "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300"
+                : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
             }`}
           >
             {limit - (used ?? 0)} left
@@ -1886,18 +1943,18 @@ function QuotaCard({
         )}
       </div>
       {loading ? (
-        <div className="mt-4 h-8 w-24 animate-pulse rounded-lg bg-slate-100" />
+        <div className="mt-4 h-8 w-24 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />
       ) : (
-        <div className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 sm:text-[28px]">
+        <div className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-[28px]">
           {used ?? 0}
-          <span className="text-base font-normal text-slate-400">
+          <span className="text-base font-normal text-slate-400 dark:text-slate-400">
             {" "}
             / {limit ?? 0}
           </span>
         </div>
       )}
-      <div className="mt-1 text-sm text-slate-500">SMS credits used</div>
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
+      <div className="mt-1 text-sm text-slate-500 dark:text-slate-400">SMS credits used</div>
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div
           className={`h-full rounded-full transition-all ${warn ? "bg-red-500" : "bg-blue-600"}`}
           style={{ width: `${pct}%` }}
@@ -1913,11 +1970,11 @@ function QuotaCard({
 
 function RowSkeleton() {
   return (
-    <tr className="border-t border-slate-100">
+    <tr className="border-t border-slate-100 dark:border-slate-800">
       {[...Array(7)].map((_, i) => (
         <td key={i} className="px-5 py-4">
           <div
-            className={`h-4 animate-pulse rounded bg-slate-100 ${i === 0 ? "w-36" : "w-20"}`}
+            className={`h-4 animate-pulse rounded bg-slate-100 dark:bg-slate-800 ${i === 0 ? "w-36" : "w-20"}`}
           />
         </td>
       ))}
@@ -1929,13 +1986,13 @@ function CardSkeleton() {
   return (
     <div className="space-y-3 p-4">
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 animate-pulse rounded-full bg-slate-100" />
+        <div className="h-10 w-10 animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
         <div className="space-y-2">
-          <div className="h-4 w-32 animate-pulse rounded bg-slate-100" />
-          <div className="h-3 w-24 animate-pulse rounded bg-slate-100" />
+          <div className="h-4 w-32 animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
+          <div className="h-3 w-24 animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
         </div>
       </div>
-      <div className="h-10 animate-pulse rounded bg-slate-50" />
+      <div className="h-10 animate-pulse rounded bg-slate-50 dark:bg-slate-800/60" />
     </div>
   );
 }
@@ -2129,16 +2186,16 @@ export default function CustomersManager() {
   if (profileLoading) {
     return (
       <div className="space-y-6">
-        <div className="h-8 w-48 animate-pulse rounded-lg bg-slate-100" />
+        <div className="h-8 w-48 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           {[...Array(5)].map((_, i) => (
             <div
               key={i}
-              className="h-32 animate-pulse rounded-2xl bg-slate-100"
+              className="h-32 animate-pulse rounded-2xl bg-slate-100 dark:border dark:border-slate-800 dark:bg-[#0b1727]"
             />
           ))}
         </div>
-        <div className="h-72 animate-pulse rounded-2xl bg-slate-100" />
+        <div className="h-72 animate-pulse rounded-2xl bg-slate-100 dark:border dark:border-slate-800 dark:bg-[#0b1727]" />
       </div>
     );
   }
@@ -2171,15 +2228,15 @@ export default function CustomersManager() {
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
             Customers
           </h1>
-          <p className="mt-1 max-w-xl text-sm text-slate-500">
+          <p className="mt-1 max-w-xl text-sm text-slate-500 dark:text-slate-400">
             Send review requests, follow each customer's progress, and resend or
             clean up in one place.
           </p>
           {business && (
-            <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-slate-100 py-1 pl-1 pr-3 text-xs font-medium text-slate-600">
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-slate-100 dark:bg-slate-800 py-1 pl-1 pr-3 text-xs font-medium text-slate-600 dark:text-slate-300">
               {business.logo ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -2199,7 +2256,7 @@ export default function CustomersManager() {
         <button
           type="button"
           onClick={() => setAddOpen(true)}
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm shadow-blue-200 transition hover:bg-blue-700 active:bg-blue-800"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm shadow-blue-200 dark:shadow-none transition hover:bg-blue-700 active:bg-blue-800"
         >
           <Plus className="h-4 w-4" />
           Add customers
@@ -2256,9 +2313,9 @@ export default function CustomersManager() {
       </div>
 
       {/* Panel */}
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1727] shadow-sm">
         {/* Toolbar */}
-        <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-3 border-b border-slate-100 dark:border-slate-800/80 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative w-full lg:max-w-sm">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
@@ -2270,7 +2327,7 @@ export default function CustomersManager() {
               }}
               placeholder="Search by name, email or phone"
               aria-label="Search customers"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-9 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 py-2.5 pl-9 pr-9 text-sm text-slate-900 dark:text-white outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/40"
             />
             {search && (
               <button
@@ -2280,7 +2337,7 @@ export default function CustomersManager() {
                   setPage(1);
                 }}
                 aria-label="Clear search"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-600"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -2295,10 +2352,10 @@ export default function CustomersManager() {
                 setPage(1);
               }}
               aria-label="Filter by status"
-              className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:flex-none"
+              className="min-w-0 flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:flex-none"
             >
               {STATUS_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
+                <option key={o.value} value={o.value} className="dark:bg-slate-900 dark:text-white">
                   {o.label}
                 </option>
               ))}
@@ -2311,10 +2368,10 @@ export default function CustomersManager() {
                 setPage(1);
               }}
               aria-label="Filter by channel"
-              className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:flex-none"
+              className="min-w-0 flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:flex-none"
             >
               {CHANNEL_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
+                <option key={o.value} value={o.value} className="dark:bg-slate-900 dark:text-white">
                   {o.label}
                 </option>
               ))}
@@ -2324,7 +2381,7 @@ export default function CustomersManager() {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="inline-flex items-center gap-1 rounded-xl px-3 py-2.5 text-sm font-medium text-blue-600 transition hover:bg-blue-50"
+                className="inline-flex items-center gap-1 rounded-xl px-3 py-2.5 text-sm font-medium text-blue-600 dark:text-blue-400 transition hover:bg-blue-50 dark:hover:bg-blue-950/40"
               >
                 <X className="h-3.5 w-3.5" />
                 Clear
@@ -2369,7 +2426,7 @@ export default function CustomersManager() {
         >
           <table className="w-full text-left">
             <thead>
-              <tr className="text-xs font-medium text-slate-500">
+              <tr className="text-xs font-medium text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
                 <th className="px-5 py-3 font-medium">Customer</th>
                 <th className="px-5 py-3 font-medium">Contact</th>
                 <th className="px-5 py-3 font-medium">Channel</th>
@@ -2387,7 +2444,7 @@ export default function CustomersManager() {
                 invites.map((c) => (
                   <tr
                     key={c.id}
-                    className="border-t border-slate-100 transition hover:bg-slate-50/60"
+                    className="border-t border-slate-100 dark:border-slate-800 transition hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
                   >
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
@@ -2396,17 +2453,17 @@ export default function CustomersManager() {
                         >
                           {initials(c.customerName)}
                         </span>
-                        <span className="text-sm font-medium text-slate-900">
+                        <span className="text-sm font-medium text-slate-900 dark:text-white">
                           {c.customerName}
                         </span>
                       </div>
                     </td>
                     <td className="px-5 py-3.5">
-                      <div className="text-sm text-slate-900">
+                      <div className="text-sm text-slate-900 dark:text-slate-200">
                         {c.customerPhone || c.customerEmail || "—"}
                       </div>
                       {c.customerPhone && c.customerEmail && (
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-slate-500 dark:text-slate-400">
                           {c.customerEmail}
                         </div>
                       )}
@@ -2414,7 +2471,7 @@ export default function CustomersManager() {
                     <td className="px-5 py-3.5">
                       <ChannelBadge channel={c.channel} />
                     </td>
-                    <td className="whitespace-nowrap px-5 py-3.5 text-sm text-slate-600">
+                    <td className="whitespace-nowrap px-5 py-3.5 text-sm text-slate-600 dark:text-slate-300">
                       {formatDate(c.sentAt ?? c.createdAt)}
                     </td>
                     <td className="px-5 py-3.5">
@@ -2446,7 +2503,7 @@ export default function CustomersManager() {
 
         {/* Mobile / tablet cards */}
         <div
-          className={`divide-y divide-slate-100 transition-opacity lg:hidden ${isFetching && !isLoading ? "opacity-60" : ""}`}
+          className={`divide-y divide-slate-100 dark:divide-slate-800 transition-opacity lg:hidden ${isFetching && !isLoading ? "opacity-60" : ""}`}
         >
           {isLoading && [...Array(4)].map((_, i) => <CardSkeleton key={i} />)}
 
@@ -2461,10 +2518,10 @@ export default function CustomersManager() {
                       {initials(c.customerName)}
                     </span>
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-medium text-slate-900">
+                      <div className="truncate text-sm font-medium text-slate-900 dark:text-white">
                         {c.customerName}
                       </div>
-                      <div className="truncate text-xs text-slate-500">
+                      <div className="truncate text-xs text-slate-500 dark:text-slate-400">
                         {c.customerPhone || c.customerEmail || "—"}
                       </div>
                     </div>
@@ -2474,26 +2531,26 @@ export default function CustomersManager() {
 
                 <div className="mt-3 grid grid-cols-3 gap-3 text-xs">
                   <div>
-                    <div className="text-slate-400">Channel</div>
+                    <div className="text-slate-400 dark:text-slate-400">Channel</div>
                     <div className="mt-1">
                       <ChannelBadge channel={c.channel} />
                     </div>
                   </div>
                   <div>
-                    <div className="text-slate-400">Sent</div>
-                    <div className="mt-1 text-sm text-slate-700">
+                    <div className="text-slate-400 dark:text-slate-400">Sent</div>
+                    <div className="mt-1 text-sm text-slate-700 dark:text-slate-300">
                       {formatDate(c.sentAt ?? c.createdAt)}
                     </div>
                   </div>
                   <div>
-                    <div className="text-slate-400">Rating</div>
+                    <div className="text-slate-400 dark:text-slate-400">Rating</div>
                     <div className="mt-1">
                       <Stars rating={c.feedbackRating} />
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-3 border-t border-slate-100 pt-2">
+                <div className="mt-3 border-t border-slate-100 dark:border-slate-800 pt-2">
                   <Actions c={c} />
                 </div>
               </div>
@@ -2512,13 +2569,13 @@ export default function CustomersManager() {
 
         {/* Pagination */}
         {meta.total > 0 && (
-          <div className="flex flex-col items-center gap-3 border-t border-slate-100 p-4 sm:p-5 md:flex-row md:justify-between">
-            <div className="flex items-center gap-3 text-xs text-slate-500">
+          <div className="flex flex-col items-center gap-3 border-t border-slate-100 dark:border-slate-800 p-4 sm:p-5 md:flex-row md:justify-between">
+            <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
               <span>
                 Showing{" "}
-                <span className="font-medium text-slate-700">{from}</span>–
-                <span className="font-medium text-slate-700">{to}</span> of{" "}
-                <span className="font-medium text-slate-700">{meta.total}</span>
+                <span className="font-medium text-slate-700 dark:text-slate-200">{from}</span>–
+                <span className="font-medium text-slate-700 dark:text-slate-200">{to}</span> of{" "}
+                <span className="font-medium text-slate-700 dark:text-slate-200">{meta.total}</span>
               </span>
               <label className="flex items-center gap-1.5">
                 <span className="sr-only sm:not-sr-only">Rows</span>
@@ -2529,10 +2586,10 @@ export default function CustomersManager() {
                     setPage(1);
                   }}
                   aria-label="Rows per page"
-                  className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-blue-500"
+                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1 text-xs text-slate-700 dark:text-slate-200 outline-none focus:border-blue-500"
                 >
                   {PAGE_SIZE_OPTIONS.map((n) => (
-                    <option key={n} value={n}>
+                    <option key={n} value={n} className="dark:bg-slate-900 dark:text-white">
                       {n}
                     </option>
                   ))}
@@ -2546,7 +2603,7 @@ export default function CustomersManager() {
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
                 aria-label="Previous page"
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 transition hover:bg-slate-50 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -2565,7 +2622,7 @@ export default function CustomersManager() {
                     className={`flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-sm font-medium transition ${
                       p === page
                         ? "bg-blue-600 text-white shadow-sm"
-                        : "text-slate-600 hover:bg-slate-100"
+                        : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                     }`}
                   >
                     {p}
@@ -2578,7 +2635,7 @@ export default function CustomersManager() {
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
                 aria-label="Next page"
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 transition hover:bg-slate-50 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>

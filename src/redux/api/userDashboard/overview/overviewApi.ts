@@ -32,6 +32,14 @@ export const UserOverviewApi = baseApi.injectEndpoints({
       }),
       providesTags: ["userOverview"],
     }),
+
+    syncGoogleReviews: builder.mutation({
+      query: (businessId) => ({
+        url: `/business/${businessId}/sync-reviews`,
+        method: "POST",
+      }),
+      invalidatesTags: ["userOverview", "userReviewGap"],
+    }),
   }),
 });
 
@@ -40,4 +48,5 @@ export const {
   useGetChartsQuery,
   useGetMyBusinessProfileQuery,
   useGetReviewMetricsQuery,
+  useSyncGoogleReviewsMutation,
 } = UserOverviewApi;

@@ -19,6 +19,12 @@ export const NAV_DATA_USER: NavSection[] = [
         items: [],
       },
       {
+        title: "Reviews & AI Replies",
+        url: "/dashboard/reviews-management",
+        icon: Icons.MessageSquareQuote,
+        items: [],
+      },
+      {
         title: "NFC",
         url: "/dashboard/nfc-management",
         icon: Icons.Nfc,

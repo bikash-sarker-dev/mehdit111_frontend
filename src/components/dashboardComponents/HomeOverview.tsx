@@ -445,7 +445,14 @@ import {
   Plus,
   ArrowRight,
   Send,
+  RefreshCw,
+  X,
+  Mail,
+  Phone,
+  MessageSquare,
 } from "lucide-react";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 // ⚠️ Adjust these import paths to match your project
 import { useGetMeProfileQuery } from "@/redux/api/getMe/getMeApi";
@@ -453,7 +460,12 @@ import {
   useGetChartsQuery,
   useGetMyBusinessProfileQuery,
   useGetCampaignStatsQuery,
+  useSyncGoogleReviewsMutation,
 } from "@/redux/api/userDashboard/overview/overviewApi";
+import {
+  AddCustomerModal,
+  type AddMode,
+} from "@/components/dashboardComponents/customerManagement/Customersmanager";
 
 /* -------------------------------------------------------------------------- */
 /*                                   Types                                    */
@@ -597,7 +609,9 @@ function pickEvenly<T>(arr: T[], count: number): T[] {
 
 function Skeleton({ className = "" }: { className?: string }) {
   return (
-    <div className={`animate-pulse rounded-xl bg-slate-100 ${className}`} />
+    <div
+      className={`animate-pulse rounded-xl bg-slate-200/70 dark:bg-slate-800/70 ${className}`}
+    />
   );
 }
 
@@ -617,18 +631,57 @@ export default function ReviewDashboard() {
   const meBusiness = me?.businesses?.find((b) => b.id === businessId);
   const skip = !businessId;
 
-  /* 2) Business-scoped queries (cached per businessId / period argument) */
-  const { data: bizRes } = useGetMyBusinessProfileQuery(businessId, { skip });
+  /* 2) Business-scoped queries (cached per businessId / period argument with auto-polling) */
+  const { data: bizRes, refetch: refetchBiz } = useGetMyBusinessProfileQuery(
+    businessId,
+    { skip, pollingInterval: 4000, refetchOnFocus: true },
+  );
   const {
     data: dashRes,
     isLoading: dashLoading,
     isFetching: dashFetching,
     isError: dashError,
-  } = useGetChartsQuery({ businessId, period: PERIOD_API[period] }, { skip });
-  const { data: campRes, isLoading: campLoading } = useGetCampaignStatsQuery(
-    businessId,
-    { skip },
+    refetch: refetchDash,
+  } = useGetChartsQuery(
+    { businessId, period: PERIOD_API[period] },
+    { skip, pollingInterval: 4000, refetchOnFocus: true },
   );
+  const { data: campRes, isLoading: campLoading, refetch: refetchCamp } =
+    useGetCampaignStatsQuery(businessId, {
+      skip,
+      pollingInterval: 4000,
+      refetchOnFocus: true,
+    });
+
+  const [syncGoogleReviews, { isLoading: isSyncing }] =
+    useSyncGoogleReviewsMutation();
+
+  const handleSyncReviews = async () => {
+    if (!businessId) return;
+    try {
+      await syncGoogleReviews(businessId).unwrap();
+      toast.success("Google reviews synced successfully!");
+      refetchBiz();
+      refetchDash();
+      refetchCamp();
+    } catch (err: any) {
+      toast.error(err?.data?.message || err?.message || "Failed to sync reviews");
+    }
+  };
+
+  /* 3) Quick Actions & Customer Management Modal */
+  const router = useRouter();
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<AddMode>("SMS");
+
+  const openActionModal = (mode: AddMode) => {
+    if (!businessId) {
+      toast.error("Business profile not loaded yet. Please wait a moment.");
+      return;
+    }
+    setModalMode(mode);
+    setIsCustomerModalOpen(true);
+  };
 
   const business =
     (bizRes as ApiEnvelope<BusinessProfile> | undefined)?.data ?? meBusiness;
@@ -763,24 +816,35 @@ export default function ReviewDashboard() {
 
   /* -------------------------------- Render ------------------------------- */
   return (
-    <div className="min-h-screen w-full text-slate-900">
+    <div className="min-h-screen w-full text-slate-900 dark:text-slate-100">
       <div>
         {/* Header */}
-        <header className="mb-6 sm:mb-8">
-          {meLoading ? (
-            <Skeleton className="h-8 w-64" />
-          ) : (
-            <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
-              {greeting()}, {businessName}
-            </h1>
-          )}
-          <p className="mt-1 text-sm text-slate-500">
-            Here&apos;s how your review growth is performing — {rangeLabel}.
-          </p>
+        <header className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            {meLoading ? (
+              <Skeleton className="h-8 w-64" />
+            ) : (
+              <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
+                {greeting()}, {businessName}
+              </h1>
+            )}
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Here&apos;s how your review growth is performing — {rangeLabel}.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleSyncReviews}
+            disabled={isSyncing}
+            className="inline-flex items-center gap-2 self-start rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1727] px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 sm:self-auto"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin text-blue-500" : ""}`} />
+            {isSyncing ? "Syncing Reviews..." : "Sync Google Reviews"}
+          </button>
         </header>
 
         {dashError && (
-          <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-600">
+          <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-400">
             We couldn&apos;t load your dashboard data. Try another time range or
             refresh the page.
           </div>
@@ -790,15 +854,26 @@ export default function ReviewDashboard() {
         <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {dashLoading || meLoading || !dash
             ? Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-[148px]" />
+                <div
+                  key={i}
+                  className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-[#0b1727] sm:p-5"
+                >
+                  <div className="mb-4 flex items-center justify-between">
+                    <Skeleton className="h-9 w-9 rounded-xl" />
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                  </div>
+                  <Skeleton className="h-8 w-24 rounded-lg" />
+                  <Skeleton className="mt-2 h-4 w-28 rounded" />
+                  <Skeleton className="mt-1.5 h-3 w-36 rounded" />
+                </div>
               ))
             : stats.map((s, i) => (
                 <div
                   key={i}
-                  className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+                  className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:shadow-md dark:border-slate-800 dark:bg-[#0b1727] sm:p-5"
                 >
                   <div className="mb-4 flex items-center justify-between">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-500/20">
                       {s.icon}
                     </span>
                     <span
@@ -807,13 +882,13 @@ export default function ReviewDashboard() {
                       {s.delta}
                     </span>
                   </div>
-                  <div className="text-2xl font-semibold text-slate-900 sm:text-[28px]">
+                  <div className="text-2xl font-bold text-slate-900 dark:text-white sm:text-[28px]">
                     {s.value}
                   </div>
-                  <div className="mt-1 text-sm font-medium text-slate-700">
+                  <div className="mt-1 text-sm font-medium text-slate-700 dark:text-slate-300">
                     {s.label}
                   </div>
-                  <div className="mt-0.5 text-xs text-slate-400">
+                  <div className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
                     {s.sublabel}
                   </div>
                 </div>
@@ -821,13 +896,13 @@ export default function ReviewDashboard() {
         </div>
 
         {/* Review Growth chart */}
-        <section className="mb-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+        <section className="mb-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-[#0b1727] sm:p-6">
           <div className="mb-1 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h2 className="text-base font-semibold text-slate-900 sm:text-lg">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white sm:text-lg">
                 Review Growth
               </h2>
-              <p className="mt-0.5 text-xs text-slate-400 sm:text-sm">
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
                 Track how your Google reviews are growing over time.
               </p>
             </div>
@@ -843,7 +918,7 @@ export default function ReviewDashboard() {
               <div
                 role="tablist"
                 aria-label="Chart time range"
-                className="flex w-full flex-wrap gap-1 rounded-full border border-slate-200 bg-slate-50 p-1 sm:w-auto"
+                className="flex w-full flex-wrap gap-1 rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-1 sm:w-auto"
               >
                 {periods.map((p) => (
                   <button
@@ -854,7 +929,7 @@ export default function ReviewDashboard() {
                     className={`flex-1 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors sm:flex-none ${
                       period === p
                         ? "bg-blue-600 text-white shadow-sm"
-                        : "text-slate-500 hover:text-slate-700"
+                        : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                     }`}
                   >
                     {p}
@@ -866,10 +941,10 @@ export default function ReviewDashboard() {
 
           <div className="mt-4 flex flex-wrap items-end justify-between gap-2">
             <div>
-              <div className="text-2xl font-semibold text-slate-900 sm:text-3xl">
+              <div className="text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
                 {allTimeTotal.toLocaleString()}
               </div>
-              <div className="text-sm text-blue-600">Total Reviews</div>
+              <div className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Reviews</div>
             </div>
             <div className="text-right">
               <span
@@ -880,7 +955,7 @@ export default function ReviewDashboard() {
                 {newInPeriod > 0 ? "↑ " : ""}
                 {newInPeriod} new
               </span>
-              <div className="mt-1 text-xs text-slate-400">in this period</div>
+              <div className="mt-1 text-xs text-slate-400 dark:text-slate-400">in this period</div>
             </div>
           </div>
 
@@ -890,12 +965,23 @@ export default function ReviewDashboard() {
               dashFetching ? "opacity-50" : "opacity-100"
             }`}
           >
-            {dashLoading || !chart.hasData ? (
-              <Skeleton className="h-[220px] min-w-[480px]" />
+            {dashLoading ? (
+              <div className="flex h-[220px] min-w-[480px] items-center justify-center rounded-xl bg-slate-50/50 p-6 dark:bg-slate-900/40">
+                <Skeleton className="h-[180px] w-full rounded-lg" />
+              </div>
+            ) : !chart.hasData ? (
+              <div className="flex h-[220px] min-w-[480px] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 p-6 text-center dark:border-slate-800">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  No review activity recorded for this period.
+                </p>
+                <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+                  Reviews collected via NFC cards or invite links will appear here.
+                </p>
+              </div>
             ) : (
               <div className="min-w-[480px]">
                 <div className="flex">
-                  <div className="flex w-8 flex-col justify-between py-1 text-[11px] text-slate-400 sm:w-10">
+                  <div className="flex w-8 flex-col justify-between py-1 text-[11px] text-slate-400 dark:text-slate-400 sm:w-10">
                     {[...chart.yTicks].reverse().map((t) => (
                       <span key={t}>{t}</span>
                     ))}
@@ -917,7 +1003,7 @@ export default function ReviewDashboard() {
                           <stop
                             offset="0%"
                             stopColor="#2563eb"
-                            stopOpacity="0.18"
+                            stopOpacity="0.25"
                           />
                           <stop
                             offset="100%"
@@ -938,7 +1024,8 @@ export default function ReviewDashboard() {
                             x2={chart.width}
                             y1={y}
                             y2={y}
-                            stroke="#e2e8f0"
+                            stroke="currentColor"
+                            className="text-slate-200 dark:text-slate-800"
                             strokeDasharray="3 4"
                             strokeWidth={1}
                           />
@@ -962,7 +1049,7 @@ export default function ReviewDashboard() {
                   </div>
                 </div>
 
-                <div className="ml-8 mt-2 flex justify-between text-[11px] text-slate-400 sm:ml-10">
+                <div className="ml-8 mt-2 flex justify-between text-[11px] text-slate-400 dark:text-slate-400 sm:ml-10">
                   {chart.labels.map((l, i) => (
                     <span key={`${l}-${i}`}>{l}</span>
                   ))}
@@ -975,22 +1062,28 @@ export default function ReviewDashboard() {
         {/* Bottom grid: Review Requests + Quick Actions */}
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
           {/* Review Requests */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-            <h2 className="text-base font-semibold text-slate-900 sm:text-lg">
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1727] p-4 shadow-sm sm:p-6">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white sm:text-lg">
               Review Requests
             </h2>
-            <p className="mt-0.5 text-xs text-slate-400 sm:text-sm">
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
               All-time campaign performance
             </p>
 
             {campLoading || !camp ? (
               <div className="mt-5 space-y-5">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} className="h-8" />
+                  <div key={i} className="space-y-2">
+                    <div className="flex justify-between">
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                    <Skeleton className="h-1.5 w-full rounded-full" />
+                  </div>
                 ))}
               </div>
             ) : camp.totalInvites === 0 ? (
-              <p className="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">
+              <p className="mt-5 rounded-xl bg-slate-50 dark:bg-slate-900/60 p-4 text-sm text-slate-500 dark:text-slate-400">
                 No review requests yet. Send your first request to start
                 tracking results here.
               </p>
@@ -1004,15 +1097,15 @@ export default function ReviewDashboard() {
                   return (
                     <div key={row.label}>
                       <div className="mb-1.5 flex items-baseline justify-between text-sm">
-                        <span className="text-slate-500">{row.label}</span>
-                        <span className="font-semibold text-slate-900">
+                        <span className="text-slate-600 dark:text-slate-300">{row.label}</span>
+                        <span className="font-semibold text-slate-900 dark:text-white">
                           {row.value}
-                          <span className="ml-1 text-xs font-normal text-slate-400">
+                          <span className="ml-1 text-xs font-normal text-slate-400 dark:text-slate-400">
                             {pct}%
                           </span>
                         </span>
                       </div>
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                         <div
                           className={`h-full rounded-full ${row.barColor}`}
                           style={{ width: `${pct}%` }}
@@ -1024,37 +1117,53 @@ export default function ReviewDashboard() {
               </div>
             )}
 
-            <button className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700">
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard/customers-management")}
+              className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer"
+            >
               View Requests
               <ArrowRight className="h-4 w-4" />
             </button>
           </section>
 
           {/* Quick Actions */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-            <h2 className="text-base font-semibold text-slate-900 sm:text-lg">
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1727] p-4 shadow-sm sm:p-6">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white sm:text-lg">
               Quick Actions
             </h2>
 
             <div className="mt-5 flex flex-col gap-3">
-              <button className="flex items-center gap-2.5 rounded-xl bg-blue-600 px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700">
+              <button
+                type="button"
+                onClick={() => openActionModal("SMS")}
+                className="flex items-center gap-2.5 rounded-xl bg-blue-600 px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 cursor-pointer"
+              >
                 <Send className="h-4 w-4" />
                 Send Review Request
               </button>
 
-              <button className="flex items-center gap-2.5 rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
-                <Zap className="h-4 w-4 text-slate-400" />
+              <button
+                type="button"
+                onClick={() => openActionModal("SMS")}
+                className="flex items-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                <Zap className="h-4 w-4 text-slate-400 dark:text-slate-400" />
                 QuickSend
               </button>
 
-              <button className="flex items-center gap-2.5 rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
-                <Plus className="h-4 w-4 text-slate-400" />
+              <button
+                type="button"
+                onClick={() => openActionModal("BULK")}
+                className="flex items-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                <Plus className="h-4 w-4 text-slate-400 dark:text-slate-400" />
                 Add Customer
               </button>
             </div>
 
             {camp?.subscriptionSms && (
-              <p className="mt-4 text-xs text-slate-400">
+              <p className="mt-4 text-xs text-slate-400 dark:text-slate-400">
                 {camp.subscriptionSms.remaining} of {camp.subscriptionSms.limit}{" "}
                 SMS remaining
               </p>
@@ -1062,6 +1171,23 @@ export default function ReviewDashboard() {
           </section>
         </div>
       </div>
+
+      {/* Review Request & Add Customer Modal */}
+      <AddCustomerModal
+        open={isCustomerModalOpen}
+        onClose={() => setIsCustomerModalOpen(false)}
+        businessId={businessId ?? ""}
+        smsRemaining={camp?.subscriptionSms?.remaining}
+        defaultChannel="SMS"
+        initialMode={modalMode}
+        onDone={(msg) => {
+          toast.success(msg);
+          refetchCamp();
+          refetchBiz();
+          refetchDash();
+        }}
+        onError={(err) => toast.error(err)}
+      />
     </div>
   );
 }

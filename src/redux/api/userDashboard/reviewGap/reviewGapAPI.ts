@@ -17,8 +17,48 @@ export const reviewGapApi = baseApi.injectEndpoints({
       }),
       providesTags: ["userReviewGap"],
     }),
+
+    getNfcCards: builder.query({
+      query: (businessId) => ({
+        url: `/nfc?businessId=${businessId}&limit=50`,
+        method: "GET",
+      }),
+      providesTags: ["userReviewGap"],
+    }),
+
+    createNfcCard: builder.mutation({
+      query: (body) => ({
+        url: `/nfc`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["userReviewGap"],
+    }),
+
+    updateNfcCard: builder.mutation({
+      query: ({ id, body }) => ({
+        url: `/nfc/${id}`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["userReviewGap"],
+    }),
+
+    deleteNfcCard: builder.mutation({
+      query: (id) => ({
+        url: `/nfc/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["userReviewGap"],
+    }),
   }),
 });
 
-export const { useGetReviewGapAnalyticsQuery, useGetNfcAnalyticsQuery } =
-  reviewGapApi;
+export const {
+  useGetReviewGapAnalyticsQuery,
+  useGetNfcAnalyticsQuery,
+  useGetNfcCardsQuery,
+  useCreateNfcCardMutation,
+  useUpdateNfcCardMutation,
+  useDeleteNfcCardMutation,
+} = reviewGapApi;

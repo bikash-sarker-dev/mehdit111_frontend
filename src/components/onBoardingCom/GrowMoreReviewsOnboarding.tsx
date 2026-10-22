@@ -6162,7 +6162,12 @@ export default function GrowMoreReviewsOnboarding({
       // 3 → channel, then mark 3 complete
       const channelRes = (await saveChannel({
         businessId,
-        body: { defaultRequestChannel: data.defaultRequestChannel },
+        body: {
+          defaultRequestChannel:
+            data.defaultRequestChannel === "Email"
+              ? "EMAIL"
+              : data.defaultRequestChannel,
+        },
       }).unwrap()) as ApiResponse<Business>;
       mergeBusiness(channelRes?.data);
 
@@ -6210,8 +6215,11 @@ export default function GrowMoreReviewsOnboarding({
         await postStep5({
           businessId: business.id,
           body: {
+            businessId: business.id,
             competitors: pending.map((c) => ({
               name: c.name,
+              placeId: c.placeId,
+              address: c.address,
               rating: c.rating,
               userRatingsTotal: c.totalReviews,
             })),

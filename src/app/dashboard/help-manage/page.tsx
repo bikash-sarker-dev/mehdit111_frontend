@@ -1,12 +1,14 @@
 import React from "react";
-import ComingSoonPage from "../comingsoon/page";
+import type { Metadata } from "next";
+import HelpSupport from "@/components/dashboardComponents/help/HelpSupport";
 
-const page = () => {
-  return (
-    <div>
-      <ComingSoonPage />
-    </div>
-  );
+export const metadata: Metadata = {
+  title: {
+    absolute: "GrowMoreReviews",
+  },
+  description: "Get technical support, customer assistance, or find office details.",
 };
 
-export default page;
+export default function HelpManagePage() {
+  return <HelpSupport />;
+}

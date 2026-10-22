@@ -82,6 +82,7 @@ import Link from "next/link";
 import { useSidebarContext } from "../sidebar/sidebar-context";
 import { MenuIcon } from "./icons";
 import { Notification } from "./notification";
+import { ThemeToggleSwitch } from "./theme-toggle";
 
 import { useGetMeProfileQuery } from "@/redux/api/getMe/getMeApi"; // <- adjust path if needed
 import { useSelector } from "react-redux";
@@ -168,7 +169,8 @@ export function Header() {
       </div>
 
       <div className="flex flex-1 items-center justify-end gap-2 min-[375px]:gap-4">
-        <Notification />
+        <ThemeToggleSwitch />
+        {/* <Notification /> */}
 
         <div className="hidden shrink-0 sm:block">
           {isLoading ? (

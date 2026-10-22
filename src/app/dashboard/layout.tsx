@@ -14,10 +14,11 @@ import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: {
-    template: "shizzle",
-    default: "shizzle",
+    template: "%s | GrowMoreReviews",
+    default: "GrowMoreReviews",
   },
-  description: "this is shizzle project for demo description",
+  description:
+    "GrowMoreReviews — Review Growth, Reputation Management & Competitor Intelligence for local businesses.",
 };
 
 export default function DashboardLayout({ children }: PropsWithChildren) {

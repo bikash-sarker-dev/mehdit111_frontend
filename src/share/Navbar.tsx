@@ -140,11 +140,11 @@ interface NavLink {
 }
 
 const navLinks: NavLink[] = [
-  { label: "Home", href: "/" },
-  { label: "How It Works", href: "#how-it-works" },
-  { label: "Features", href: "#features" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "FAQ", href: "#faq" },
+  { label: "Home", href: "/#home" },
+  { label: "How It Works", href: "/#how-it-works" },
+  { label: "Features", href: "/#features" },
+  { label: "Pricing", href: "/#pricing" },
+  { label: "FAQ", href: "/#faq" },
 ];
 
 interface NavbarProps {
@@ -155,7 +155,7 @@ interface NavbarProps {
 
 export default function Navbar({
   activeHref = "/",
-  loginHref = "/login",
+  loginHref = "/signIn",
   getStartedHref = "/signup",
 }: NavbarProps) {
   const [open, setOpen] = useState(false);

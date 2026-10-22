@@ -214,7 +214,8 @@ import {
   Loader2,
   Lock,
   ShieldCheck,
-  Sparkles,
+  Zap,
+  Layers,
   X,
 } from "lucide-react";
 
@@ -225,6 +226,13 @@ import {
   useGetMyCurrentSubscriptionQuery,
   useUpgradeChangePlanCheckoutMutation,
 } from "@/redux/api/userDashboard/subscription/subscriptionApi";
+import {
+  detectUserCountrySync,
+  detectUserCountryAsync,
+  getPlanPricing,
+  getCountryDetail,
+  COUNTRY_CACHE_KEY,
+} from "@/utils/pricingCurrency";
 
 /* ------------------------------------------------------------------ */
 /*  Types & constants                                                 */
@@ -296,7 +304,7 @@ const extractPlans = (res: any): ApiPlan[] => {
 /* ------------------------------------------------------------------ */
 
 export default function PricingSection({
-  loginHref = "/login",
+  loginHref = "/signIn",
   signupHref = "/signup",
   returnTo = "/#pricing",
   redirectParam = "redirect",
@@ -366,18 +374,44 @@ export default function PricingSection({
 
   const [selectedPlan, setSelectedPlan] = useState<ApiPlan | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
+  const [planCategory, setPlanCategory] = useState<"standard" | "scale">("standard");
 
-  const loginUrl = `${loginHref}?${redirectParam}=${encodeURIComponent(returnTo)}`;
+  /* ---------------- Location-based Automatic Currency Detection ---------------- */
+  const [selectedCountryCode, setSelectedCountryCode] = useState<string>(() =>
+    detectUserCountrySync()
+  );
+
+  useEffect(() => {
+    let alive = true;
+    const profileCountry = (profile as any)?.businesses?.[0]?.country || (profile as any)?.country;
+    detectUserCountryAsync(profileCountry).then((code) => {
+      if (alive && code) setSelectedCountryCode(code);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [profile]);
+
+  const currentCountry = useMemo(
+    () => getCountryDetail(selectedCountryCode),
+    [selectedCountryCode]
+  );
+
+  const getPlanPrice = (p: ApiPlan): number => {
+    return getPlanPricing(p.plan, selectedCountryCode, p.priceMonthly).price;
+  };
 
   const handleSelect = (plan: ApiPlan) => {
     if (profileLoading) return;
 
-    // Not logged in: remember the plan, then send to login
+    // Not logged in: remember plan and send to signup/signin with return redirect
     if (!isLoggedIn) {
       try {
         sessionStorage.setItem(INTENT_KEY, plan.plan);
+        sessionStorage.setItem("gmr_intended_currency", currentCountry.currency);
+        sessionStorage.setItem("gmr_intended_country", currentCountry.code);
       } catch {}
-      router.push(loginUrl);
+      router.push(`${signupHref}?plan=${encodeURIComponent(plan.plan)}&redirect=${encodeURIComponent(returnTo)}`);
       return;
     }
 
@@ -414,17 +448,13 @@ export default function PricingSection({
 
   const handleCheckout = async () => {
     if (!selectedPlan) return;
-    if (!businessId) {
-      setModalError(
-        "We couldn't find a business on your account. Finish setting up your business in the dashboard first.",
-      );
-      return;
-    }
     setModalError(null);
     try {
       const res = await createCheckout({
-        businessId,
+        businessId: businessId || undefined,
         plan: selectedPlan.plan,
+        currency: currentCountry.currency.toLowerCase(),
+        country: currentCountry.code,
       }).unwrap();
 
       const url: string | undefined = res?.data?.checkoutUrl;
@@ -484,6 +514,56 @@ export default function PricingSection({
               .
             </p>
           )}
+
+          {/* Toggle Category */}
+          <div className="mt-8 flex items-center justify-center">
+            <div className="inline-flex rounded-2xl bg-white p-1.5 shadow-sm ring-1 ring-slate-200">
+              <button
+                type="button"
+                onClick={() => setPlanCategory("standard")}
+                className={[
+                  "flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all",
+                  planCategory === "standard"
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-slate-600 hover:text-slate-900",
+                ].join(" ")}
+              >
+                <span>Standard Plans</span>
+                <span
+                  className={[
+                    "rounded-full px-2 py-0.5 text-xs font-medium",
+                    planCategory === "standard"
+                      ? "bg-blue-500 text-white"
+                      : "bg-slate-100 text-slate-600",
+                  ].join(" ")}
+                >
+                  Starter &amp; Growth
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPlanCategory("scale")}
+                className={[
+                  "flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all",
+                  planCategory === "scale"
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-slate-600 hover:text-slate-900",
+                ].join(" ")}
+              >
+                <span>High-Volume &amp; Agency</span>
+                <span
+                  className={[
+                    "rounded-full px-2 py-0.5 text-xs font-medium",
+                    planCategory === "scale"
+                      ? "bg-blue-500 text-white"
+                      : "bg-slate-100 text-slate-600",
+                  ].join(" ")}
+                >
+                  Pro &amp; Enterprise
+                </span>
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Error loading plans */}
@@ -505,8 +585,8 @@ export default function PricingSection({
 
         {/* Loading skeletons */}
         {plansLoading && (
-          <div className="mx-auto mt-12 grid max-w-md grid-cols-1 gap-6 sm:mt-16 lg:max-w-6xl lg:grid-cols-3 lg:gap-8">
-            {[0, 1, 2].map((i) => (
+          <div className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-6 sm:mt-16 sm:grid-cols-2 lg:gap-8">
+            {[0, 1].map((i) => (
               <div
                 key={i}
                 className="h-[28rem] animate-pulse rounded-2xl border border-slate-200 bg-white motion-reduce:animate-none"
@@ -524,10 +604,13 @@ export default function PricingSection({
           </div>
         )}
 
-        {/* Plans */}
+        {/* Plans: 2 Balanced Cards per view */}
         {!plansLoading && !plansError && paidPlans.length > 0 && (
-          <div className="mx-auto mt-12 grid max-w-md grid-cols-1 gap-6 sm:mt-16 lg:max-w-6xl lg:grid-cols-3 lg:items-stretch lg:gap-8">
-            {paidPlans.map((plan) => {
+          <div className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-6 sm:mt-16 sm:grid-cols-2 sm:items-stretch lg:gap-8">
+            {(planCategory === "standard"
+              ? paidPlans.filter((p) => p.plan === "STARTER" || p.plan === "GROWTH")
+              : paidPlans.filter((p) => p.plan === "PRO" || p.plan === "ENTERPRISE")
+            ).map((plan) => {
               const featured = !!plan.isPopular;
               const isCurrent =
                 isLoggedIn && plan.plan === currentPlanKey && isActive;
@@ -559,20 +642,29 @@ export default function PricingSection({
                     {plan.name?.toUpperCase()}
                   </p>
 
-                  <div className="mt-3 flex items-baseline gap-1">
+                  <div className="mt-3 flex items-baseline gap-1.5">
                     <span
-                      className={`text-4xl font-bold ${
+                      className={`text-4xl font-bold tracking-tight ${
                         featured ? "text-white" : "text-slate-900"
                       }`}
                     >
-                      {currency(plan.priceMonthly, plan.currency)}
+                      {currentCountry.currencySymbol}{getPlanPrice(plan)}
                     </span>
                     <span
-                      className={`text-sm ${
+                      className={`text-sm font-medium ${
                         featured ? "text-blue-100" : "text-slate-400"
                       }`}
                     >
                       /month
+                    </span>
+                    <span
+                      className={`ml-1 rounded px-1.5 py-0.5 text-[11px] font-semibold ${
+                        featured
+                          ? "bg-white/20 text-white"
+                          : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      {currentCountry.currency}
                     </span>
                   </div>
 
@@ -666,18 +758,21 @@ export default function PricingSection({
               </button>
 
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide">
-                <Sparkles className="h-3 w-3" />
+                <Zap className="h-3 w-3" />
                 {modalAction} plan
               </span>
               <h3 className="mt-3 text-2xl font-bold">{selectedPlan.name}</h3>
               <p className="mt-1 text-sm text-blue-100">
                 {selectedPlan.tagline}
               </p>
-              <div className="mt-5 flex items-baseline gap-1">
+              <div className="mt-5 flex items-baseline gap-1.5">
                 <span className="text-4xl font-bold">
-                  {currency(selectedPlan.priceMonthly, selectedPlan.currency)}
+                  {currentCountry.currencySymbol}{getPlanPrice(selectedPlan)}
                 </span>
                 <span className="text-sm text-blue-100">/ month</span>
+                <span className="ml-1 rounded bg-white/20 px-1.5 py-0.5 text-xs font-semibold text-white">
+                  {currentCountry.currency}
+                </span>
               </div>
             </div>
 

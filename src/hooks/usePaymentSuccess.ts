@@ -99,9 +99,25 @@ export function usePaymentSuccess() {
     refetch,
   } = useGetMyCurrentSubscriptionQuery(businessId, { skip: !businessId });
 
+  const extractPlans = (res: any): any[] => {
+    const candidates = [
+      res,
+      res?.data,
+      res?.data?.plans,
+      res?.data?.data,
+      res?.data?.items,
+      res?.plans,
+      res?.items,
+    ];
+    for (const c of candidates) {
+      if (Array.isArray(c)) return c;
+    }
+    return [];
+  };
+
   const sub = subRes?.data?.subscription;
   const quotas = subRes?.data?.quotas;
-  const plans: any[] = plansRes?.data ?? [];
+  const plans: any[] = extractPlans(plansRes);
 
   const loading = !ready || profileLoading || (!!businessId && subLoading);
 
@@ -145,7 +161,9 @@ export function usePaymentSuccess() {
   /* ---------------- values to display ---------------- */
   // While activating, show the plan being bought. Once active, show the real one.
   const showLive = state === "active" || !expectedPlan;
-  const planData = plans.find((p) => p.plan === (expectedPlan ?? sub?.plan));
+  const planData = Array.isArray(plans)
+    ? plans.find((p) => p && p.plan === (expectedPlan ?? sub?.plan))
+    : undefined;
 
   return {
     loading,
