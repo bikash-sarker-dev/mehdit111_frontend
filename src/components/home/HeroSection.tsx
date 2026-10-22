@@ -307,8 +307,6 @@ function Avatar({ user, size = 40 }: { user: User; size?: number }) {
 
   if (user.image && !failed) {
     return (
-      // Plain <img> avoids needing next.config remotePatterns for the API host
-      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={user.image}
         alt={user.name}
