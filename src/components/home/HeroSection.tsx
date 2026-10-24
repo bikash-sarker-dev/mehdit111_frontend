@@ -241,7 +241,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-// ⚠️ Adjust these three import paths to match your project structure
+//  Adjust these three import paths to match your project structure
 import type { RootState } from "@/redux/store";
 import { logout, type User } from "@/redux/features/user/userSlice";
 import { useGetMeProfileQuery } from "@/redux/api/getMe/getMeApi";
@@ -292,9 +292,7 @@ function Logo({ width = 120, className = "", priority = true }: LogoProps) {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Avatar (photo, with initials fallback)                                    */
-/* -------------------------------------------------------------------------- */
+
 
 function getInitials(name?: string) {
   if (!name) return "U";
