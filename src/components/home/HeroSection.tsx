@@ -266,10 +266,6 @@ function getDashboardHref(role?: string | null) {
 const LOGIN_HREF = "/signIn";
 const SIGNUP_HREF = "/signup";
 
-/* -------------------------------------------------------------------------- */
-/*  Logo                                                                      */
-/* -------------------------------------------------------------------------- */
-
 interface LogoProps {
   width?: number;
   className?: string;
@@ -291,8 +287,6 @@ function Logo({ width = 120, className = "", priority = true }: LogoProps) {
     </Link>
   );
 }
-
-
 
 function getInitials(name?: string) {
   if (!name) return "U";
